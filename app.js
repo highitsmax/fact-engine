@@ -336,9 +336,14 @@ function esc(str) {
   return div.innerHTML;
 }
 
+const SOURCE_DISPLAY_NAMES = {
+  "HI Report Jan 20.pdf": "Current Medical and Future Adult-Use Cannabis Market in Hawai'i",
+};
+
 function cleanSourceName(path) {
   if (!path) return "Unknown source";
-  return path.replace(/^.*\//, "").replace(/\.pdf$/i, "");
+  const filename = path.replace(/^.*\//, "");
+  return SOURCE_DISPLAY_NAMES[filename] || filename.replace(/\.pdf$/i, "");
 }
 
 function debounce(fn, ms) {
