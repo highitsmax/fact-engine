@@ -36,6 +36,7 @@ const ANALYSIS_URL = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform";
 
 let allRecords = [];
 let filteredRecords = [];
+let sourceUrls = {};
 let fuse = null;
 let currentPage = 1;
 
@@ -44,8 +45,12 @@ async function init() {
   document.getElementById("results").innerHTML = '<div class="loading">Loading database...</div>';
 
   try {
-    const resp = await fetch("data/cannabis_database.json");
-    allRecords = await resp.json();
+    const [dbResp, urlResp] = await Promise.all([
+      fetch("data/cannabis_database.json"),
+      fetch("data/source_urls.json"),
+    ]);
+    allRecords = await dbResp.json();
+    sourceUrls = await urlResp.json();
   } catch (e) {
     document.getElementById("results").innerHTML =
       '<div class="empty-state"><h2>Failed to load database</h2><p>Please try refreshing the page.</p></div>';
@@ -258,10 +263,13 @@ function toggleContext(id, toggle) {
 
 function viewSource(event, sourceReport, page) {
   event.preventDefault();
-  // TODO: Replace with source_urls.json lookup
-  // For now, show an alert with the source info
-  const pageStr = page ? `#page=${page}` : "";
-  alert(`Source: ${sourceReport}\nPage: ${page || "N/A"}\n\nSource URL mapping coming soon.`);
+  const url = sourceUrls[sourceReport];
+  if (url) {
+    const pageStr = page ? `#page=${page}` : "";
+    window.open(url + pageStr, "_blank", "noopener");
+  } else {
+    alert(`Source: ${sourceReport}\nPage: ${page || "N/A"}\n\nDirect link not yet available for this report.`);
+  }
 }
 
 function loadMore() {
