@@ -29,8 +29,8 @@ const STATE_NAMES = {
   WI: "Wisconsin", WY: "Wyoming",
 };
 
-// Error report form URL (replace FORM_ID with actual Google Form ID)
-const ERROR_FORM_URL = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?usp=pp_url&entry.FIELD_ID=";
+// Error report form URL
+const ERROR_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfAr0l1d53il4pEHlu4jAwLkUxKMjcnUEIP-QMptX56DLG4LQ/viewform?usp=pp_url&entry.70049677=";
 // Lead capture URL
 const ANALYSIS_URL = "https://cannabiswiseguys.com/contact/";
 
