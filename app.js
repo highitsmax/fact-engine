@@ -344,5 +344,76 @@ function debounce(fn, ms) {
   };
 }
 
+/* === VIEW SWITCHING === */
+function switchView(view) {
+  const searchView = document.getElementById("search-view");
+  const sourcesView = document.getElementById("sources-view");
+  const resultsEl = document.getElementById("results");
+  const loadMoreEl = document.getElementById("load-more-wrap");
+  const btnSearch = document.getElementById("view-search");
+  const btnSources = document.getElementById("view-sources");
+
+  if (view === "sources") {
+    searchView.style.display = "none";
+    resultsEl.style.display = "none";
+    loadMoreEl.style.display = "none";
+    sourcesView.style.display = "block";
+    btnSearch.classList.remove("active");
+    btnSources.classList.add("active");
+    renderSources();
+  } else {
+    searchView.style.display = "block";
+    resultsEl.style.display = "block";
+    sourcesView.style.display = "none";
+    btnSearch.classList.add("active");
+    btnSources.classList.remove("active");
+    applyFilters();
+  }
+}
+
+function renderSources() {
+  const container = document.getElementById("sources-list");
+
+  // Group records by source_report
+  const bySource = {};
+  allRecords.forEach(r => {
+    const src = r.source_report || "Unknown";
+    if (!bySource[src]) bySource[src] = [];
+    bySource[src].push(r);
+  });
+
+  // Sort by record count descending
+  const sorted = Object.entries(bySource).sort((a, b) => b[1].length - a[1].length);
+
+  document.getElementById("source-count").textContent = sorted.length;
+
+  container.innerHTML = sorted.map(([source, records]) => {
+    const name = cleanSourceName(source);
+    const count = records.length;
+    const states = [...new Set(records.map(r => r.state).filter(Boolean))];
+    const stateNames = states.map(s => STATE_NAMES[s] || s).join(", ");
+    const categories = [...new Set(records.map(r => r.category).filter(Boolean))];
+    const catChips = categories.map(c =>
+      `<span class="source-cat-chip">${esc(CATEGORY_LABELS[c] || c)}</span>`
+    ).join("");
+    const url = sourceUrls[source];
+    const linkHtml = url
+      ? `<a class="source-link" href="${esc(url)}" target="_blank" rel="noopener">View Original Report &rarr;</a>`
+      : "";
+
+    return `<div class="source-card">
+      <div class="source-card-header">
+        <span class="source-name">${esc(name)}</span>
+        <span class="source-count-badge">${count} facts</span>
+      </div>
+      <div class="source-meta">
+        <span class="source-states">${esc(stateNames)}</span>
+        ${linkHtml}
+      </div>
+      ${catChips ? `<div class="source-categories">${catChips}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
 /* === BOOT === */
 document.addEventListener("DOMContentLoaded", init);
