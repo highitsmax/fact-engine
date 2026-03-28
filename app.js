@@ -197,7 +197,7 @@ function renderCard(r) {
   <div class="card-context" id="${contextId}">"${esc(r.context)}"</div>
   ` : ""}
   <div class="card-actions">
-    <button class="btn btn-cite" onclick="copyCitation(this, ${JSON.stringify(JSON.stringify(r))})">&#128203; Copy Citation</button>
+    <button class="btn btn-cite" onclick="copyCitation(this, '${esc(r.id || "")}')">&#128203; Copy Citation</button>
     <a class="btn btn-error" href="${ERROR_FORM_URL}${encodeURIComponent(r.id || "")}" target="_blank" rel="noopener">&#9888; Report Error</a>
     <a class="btn btn-analysis" href="${ANALYSIS_URL}" target="_blank" rel="noopener">&#128200; Request Analysis</a>
   </div>
@@ -237,8 +237,10 @@ function formatNumber(n) {
 }
 
 /* === ACTIONS === */
-function copyCitation(btn, recordJson) {
-  const r = JSON.parse(recordJson);
+function copyCitation(btn, recordId) {
+  const r = allRecords.find(rec => rec.id === recordId);
+  if (!r) return;
+
   const source = cleanSourceName(r.source_report);
   const page = r.page ? `, p.${r.page}` : "";
   const citation = `"${r.claim}"\n(${source}${page})\nvia Cannabis Wise Guys Fact Engine — cannabiswiseguys.com/data`;
