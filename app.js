@@ -32,7 +32,7 @@ const STATE_NAMES = {
 // Error report form URL (replace FORM_ID with actual Google Form ID)
 const ERROR_FORM_URL = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?usp=pp_url&entry.FIELD_ID=";
 // Lead capture URL
-const ANALYSIS_URL = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform";
+const ANALYSIS_URL = "https://cannabiswiseguys.com/contact/";
 
 let allRecords = [];
 let filteredRecords = [];
