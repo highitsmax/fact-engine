@@ -1,0 +1,449 @@
+/* Cannabis Fact Engine - CWG Brand Styles */
+
+:root {
+  --cwg-dark: #0a0f1a;
+  --cwg-surface: #111827;
+  --cwg-card: #1a2234;
+  --cwg-card-hover: #1f2a40;
+  --cwg-border: #2a3548;
+  --cwg-green: #22c55e;
+  --cwg-green-dim: #16a34a;
+  --cwg-green-glow: rgba(34, 197, 94, 0.1);
+  --cwg-text: #e5e7eb;
+  --cwg-text-muted: #9ca3af;
+  --cwg-text-dim: #6b7280;
+  --cwg-white: #f9fafb;
+  --cwg-blue: #3b82f6;
+  --cwg-amber: #f59e0b;
+  --cwg-red: #ef4444;
+  --cwg-purple: #a855f7;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--cwg-dark);
+  color: var(--cwg-text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* === HEADER === */
+.header {
+  background: var(--cwg-surface);
+  border-bottom: 1px solid var(--cwg-border);
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--cwg-white);
+  margin-bottom: 0.25rem;
+}
+
+.header h1 span {
+  color: var(--cwg-green);
+}
+
+.header-stats {
+  font-size: 0.875rem;
+  color: var(--cwg-text-muted);
+}
+
+.header-stats strong {
+  color: var(--cwg-green);
+}
+
+.header-updated {
+  font-size: 0.75rem;
+  color: var(--cwg-text-dim);
+  margin-top: 0.25rem;
+}
+
+/* === SEARCH === */
+.search-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 0;
+}
+
+.search-box {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+  background: var(--cwg-surface);
+  border: 1px solid var(--cwg-border);
+  border-radius: var(--radius-lg);
+  color: var(--cwg-white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-box:focus {
+  border-color: var(--cwg-green);
+  box-shadow: 0 0 0 3px var(--cwg-green-glow);
+}
+
+.search-box::placeholder {
+  color: var(--cwg-text-dim);
+}
+
+/* === FILTERS === */
+.filters {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.filter-select {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  background: var(--cwg-surface);
+  border: 1px solid var(--cwg-border);
+  border-radius: var(--radius);
+  color: var(--cwg-text);
+  outline: none;
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.filter-select:focus {
+  border-color: var(--cwg-green);
+}
+
+.year-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.year-input {
+  width: 72px;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  background: var(--cwg-surface);
+  border: 1px solid var(--cwg-border);
+  border-radius: var(--radius);
+  color: var(--cwg-text);
+  outline: none;
+  text-align: center;
+}
+
+.year-input:focus {
+  border-color: var(--cwg-green);
+}
+
+.year-sep {
+  color: var(--cwg-text-dim);
+  font-size: 0.8rem;
+}
+
+.result-count {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--cwg-text-muted);
+}
+
+/* === RESULTS === */
+.results {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.card {
+  background: var(--cwg-card);
+  border: 1px solid var(--cwg-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 0.75rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.card:hover {
+  background: var(--cwg-card-hover);
+  border-color: var(--cwg-green-dim);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+
+.card-id {
+  font-size: 0.7rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--cwg-text-dim);
+  flex-shrink: 0;
+}
+
+.card-category {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Category colors */
+.cat-market_size_revenue { background: rgba(34,197,94,0.15); color: #4ade80; }
+.cat-licensing { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.cat-social_equity { background: rgba(168,85,247,0.15); color: #c084fc; }
+.cat-compliance_enforcement { background: rgba(239,68,68,0.15); color: #f87171; }
+.cat-pricing { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.cat-demand_consumption { background: rgba(6,182,212,0.15); color: #22d3ee; }
+.cat-regulatory_structure { background: rgba(156,163,175,0.15); color: #d1d5db; }
+.cat-public_health_safety { background: rgba(244,114,182,0.15); color: #f472b6; }
+.cat-supply_chain { background: rgba(251,146,60,0.15); color: #fb923c; }
+.cat-employment_economics { background: rgba(45,212,191,0.15); color: #2dd4bf; }
+
+.card-claim {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--cwg-white);
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+
+.card-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--cwg-green);
+  margin-bottom: 0.5rem;
+}
+
+.card-meta {
+  font-size: 0.8rem;
+  color: var(--cwg-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.card-meta .state-name {
+  font-weight: 600;
+  color: var(--cwg-text);
+}
+
+.card-source {
+  font-size: 0.8rem;
+  color: var(--cwg-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.card-source .page-num {
+  font-weight: 600;
+  color: var(--cwg-amber);
+}
+
+.card-source a {
+  color: var(--cwg-blue);
+  text-decoration: none;
+}
+
+.card-source a:hover {
+  text-decoration: underline;
+}
+
+/* Context expandable */
+.card-context-toggle {
+  font-size: 0.8rem;
+  color: var(--cwg-text-dim);
+  cursor: pointer;
+  padding: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  user-select: none;
+}
+
+.card-context-toggle:hover {
+  color: var(--cwg-text-muted);
+}
+
+.card-context-toggle .arrow {
+  transition: transform 0.15s;
+  font-size: 0.65rem;
+}
+
+.card-context-toggle.open .arrow {
+  transform: rotate(90deg);
+}
+
+.card-context {
+  display: none;
+  font-size: 0.8rem;
+  color: var(--cwg-text-dim);
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  line-height: 1.6;
+  font-style: italic;
+  border-left: 3px solid var(--cwg-border);
+}
+
+.card-context.open {
+  display: block;
+}
+
+/* Table fallback */
+.card-table-notice {
+  font-size: 0.8rem;
+  color: var(--cwg-amber);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Action buttons */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--cwg-border);
+}
+
+.btn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--cwg-border);
+  background: transparent;
+  color: var(--cwg-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.btn:hover {
+  border-color: var(--cwg-text-muted);
+  color: var(--cwg-white);
+}
+
+.btn-cite:hover {
+  border-color: var(--cwg-green);
+  color: var(--cwg-green);
+}
+
+.btn-error:hover {
+  border-color: var(--cwg-red);
+  color: var(--cwg-red);
+}
+
+.btn-analysis {
+  border-color: var(--cwg-green-dim);
+  color: var(--cwg-green);
+  background: var(--cwg-green-glow);
+}
+
+.btn-analysis:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: var(--cwg-green);
+}
+
+.btn-copied {
+  border-color: var(--cwg-green) !important;
+  color: var(--cwg-green) !important;
+}
+
+/* === LOAD MORE === */
+.load-more-wrap {
+  text-align: center;
+  padding: 1rem;
+}
+
+.btn-load-more {
+  padding: 0.75rem 2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: var(--cwg-green-glow);
+  border: 1px solid var(--cwg-green-dim);
+  border-radius: var(--radius-lg);
+  color: var(--cwg-green);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-load-more:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: var(--cwg-green);
+}
+
+/* === FOOTER === */
+.footer {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--cwg-text-dim);
+  border-top: 1px solid var(--cwg-border);
+}
+
+.footer a {
+  color: var(--cwg-green);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* === EMPTY STATE === */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--cwg-text-dim);
+}
+
+.empty-state h2 {
+  font-size: 1.25rem;
+  color: var(--cwg-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+/* === LOADING === */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--cwg-text-dim);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 640px) {
+  .header h1 { font-size: 1.35rem; }
+  .filters { flex-direction: column; }
+  .filter-select { width: 100%; }
+  .year-inputs { width: 100%; }
+  .year-input { flex: 1; }
+  .result-count { margin-left: 0; width: 100%; text-align: center; }
+  .card { padding: 1rem; }
+  .card-header { flex-direction: column; }
+  .card-actions { flex-direction: column; }
+  .btn { width: 100%; justify-content: center; }
+}

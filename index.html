@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cannabis Fact Engine | Cannabis Wise Guys</title>
+  <meta name="description" content="Searchable database of sourced cannabis policy and market data. Every fact links to its government source.">
+  <meta property="og:title" content="Cannabis Fact Engine | Cannabis Wise Guys">
+  <meta property="og:description" content="Searchable database of sourced cannabis policy and market data extracted from government reports.">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <h1>The Cannabis <span>Fact Engine</span></h1>
+      <div class="header-stats">
+        <strong><span id="stat-facts">--</span></strong> sourced facts from
+        <strong><span id="stat-reports">--</span></strong> reports across
+        <strong><span id="stat-states">--</span></strong> states
+      </div>
+      <div class="header-updated">Database last updated: March 2026</div>
+    </div>
+  </header>
+
+  <section class="search-section">
+    <input
+      type="text"
+      id="search"
+      class="search-box"
+      placeholder="Search claims, context, keywords..."
+      autocomplete="off"
+      spellcheck="false"
+    >
+  </section>
+
+  <section class="filters">
+    <select id="filter-state" class="filter-select">
+      <option value="">All States</option>
+    </select>
+    <select id="filter-category" class="filter-select">
+      <option value="">All Categories</option>
+    </select>
+    <select id="filter-type" class="filter-select">
+      <option value="">All Types</option>
+      <option value="statistic">Statistics</option>
+      <option value="table">Tables</option>
+      <option value="finding">Findings</option>
+    </select>
+    <div class="year-inputs">
+      <input type="number" id="year-start" class="year-input" placeholder="From" min="2010" max="2030">
+      <span class="year-sep">to</span>
+      <input type="number" id="year-end" class="year-input" placeholder="To" min="2010" max="2030">
+    </div>
+    <span id="result-count" class="result-count"></span>
+  </section>
+
+  <section id="results" class="results">
+    <div class="loading">Loading database...</div>
+  </section>
+
+  <div id="load-more-wrap" class="load-more-wrap" style="display:none;">
+    <button class="btn-load-more" onclick="loadMore()">Load More Results</button>
+  </div>
+
+  <footer class="footer">
+    <p>
+      Data extracted from public government reports using AI-assisted processing.<br>
+      Every record includes the source document, page number, and original context so you can verify.<br>
+      Found an error? <a href="#" id="footer-report">Report it</a>. &middot;
+      Built by <a href="https://cannabiswiseguys.com" target="_blank" rel="noopener">Cannabis Wise Guys</a>
+    </p>
+  </footer>
+
+</body>
+</html>
