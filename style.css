@@ -86,7 +86,7 @@ body {
 }
 
 .logo {
-  height: 52px;
+  height: 110px;
   width: auto;
   opacity: 0.92;
   transition: opacity 0.15s;
@@ -674,7 +674,7 @@ body {
     padding: 1.25rem 1rem 0.75rem;
   }
 
-  .logo { height: 40px; }
+  .logo { height: 72px; }
 
   .header-text h1 { font-size: 1.25rem; }
 
