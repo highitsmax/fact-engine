@@ -370,6 +370,28 @@ body {
   color: var(--text-dim);
 }
 
+.results-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-clear {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.btn-clear:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
 /* === RESULTS === */
 .results {
   max-width: var(--max-w);

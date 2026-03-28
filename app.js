@@ -137,6 +137,10 @@ function applyFilters() {
   currentPage = 1;
   renderResults();
   updateHashState();
+
+  // Show/hide clear button
+  const hasFilters = query || stateFilter || catFilter || typeFilter || yearStart > 0 || yearEnd < 9999;
+  document.getElementById("clear-filters").style.display = hasFilters ? "inline-block" : "none";
 }
 
 /* === RENDER === */
@@ -269,9 +273,8 @@ function viewSource(event, sourceReport, page) {
   if (url) {
     const pageStr = page ? `#page=${page}` : "";
     window.open(url + pageStr, "_blank", "noopener");
-  } else {
-    alert(`Source: ${sourceReport}\nPage: ${page || "N/A"}\n\nDirect link not yet available for this report.`);
   }
+  // No alert for unmapped sources — the page number is visible on the card
 }
 
 function loadMore() {
@@ -344,6 +347,17 @@ function debounce(fn, ms) {
     clearTimeout(timer);
     timer = setTimeout(() => fn.apply(this, args), ms);
   };
+}
+
+/* === CLEAR FILTERS === */
+function clearFilters() {
+  document.getElementById("search").value = "";
+  document.getElementById("filter-state").value = "";
+  document.getElementById("filter-category").value = "";
+  document.getElementById("filter-type").value = "";
+  document.getElementById("year-start").value = "";
+  document.getElementById("year-end").value = "";
+  applyFilters();
 }
 
 /* === VIEW SWITCHING === */
