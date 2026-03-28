@@ -263,7 +263,7 @@ function toggleContext(id, toggle) {
 
 function viewSource(event, sourceReport, page) {
   event.preventDefault();
-  const url = sourceUrls[sourceReport];
+  const url = sourceUrls[sourceReport] || null;
   if (url) {
     const pageStr = page ? `#page=${page}` : "";
     window.open(url + pageStr, "_blank", "noopener");
