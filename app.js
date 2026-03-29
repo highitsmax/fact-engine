@@ -398,6 +398,7 @@ function updateStats() {
   document.getElementById("stat-reports").textContent = sources.size;
   document.getElementById("stat-us-states").textContent = usStates.size;
   document.getElementById("stat-countries").textContent = countries.size;
+  document.getElementById("source-count").textContent = sources.size;
 }
 
 /* === UTILS === */
