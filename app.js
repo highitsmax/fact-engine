@@ -172,7 +172,10 @@ function applyFilters() {
   if (query.length >= 2) {
     results = fuse.search(query).map(r => r.item);
   } else {
-    results = [...allRecords];
+    // Default sort: newest first
+    results = [...allRecords].sort((a, b) => {
+      return getLatestYear(b) - getLatestYear(a);
+    });
   }
 
   // Apply filters
@@ -414,6 +417,17 @@ function cleanSourceName(path) {
   return SOURCE_DISPLAY_NAMES[filename] || filename.replace(/\.pdf$/i, "");
 }
 
+function getLatestYear(r) {
+  if (r.year_end) return r.year_end;
+  if (r.year_start) return r.year_start;
+  // Extract latest year from date_range string
+  if (r.date_range) {
+    const years = r.date_range.match(/\b(19|20)\d{2}\b/g);
+    if (years) return Math.max(...years.map(Number));
+  }
+  return 0;
+}
+
 function debounce(fn, ms) {
   let timer;
   return function (...args) {
@@ -504,6 +518,14 @@ function renderSources() {
       ${catChips ? `<div class="source-categories">${catChips}</div>` : ""}
     </div>`;
   }).join("");
+}
+
+/* === MOBILE FILTER TOGGLE === */
+function toggleFilters() {
+  const row = document.getElementById("filter-row");
+  const btn = document.getElementById("filter-toggle");
+  row.classList.toggle("open");
+  btn.classList.toggle("open");
 }
 
 /* === BOOT === */

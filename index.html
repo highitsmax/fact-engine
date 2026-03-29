@@ -13,7 +13,7 @@
   <meta name="twitter:title" content="Cannabis Fact Engine | Cannabis Wise Guys">
   <meta name="twitter:description" content="3,600+ sourced facts from government cannabis reports. Search by state, country, topic, or keyword.">
   <link rel="icon" href="assets/cwg-crest.png" type="image/png">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2">
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js" defer></script>
   <script src="app.js" defer></script>
 </head>
@@ -66,7 +66,10 @@
       </svg>
       <input type="text" id="search" class="search-box" placeholder="Search facts, e.g. &quot;Illinois social equity&quot; or &quot;tax revenue&quot;" autocomplete="off" spellcheck="false">
     </div>
-    <div class="filter-row">
+    <button class="filter-toggle-btn" id="filter-toggle" onclick="toggleFilters()">
+      Filters <span class="filter-arrow">&#9660;</span>
+    </button>
+    <div class="filter-row" id="filter-row">
       <select id="filter-country" class="filter-select">
         <option value="">All Countries</option>
       </select>
