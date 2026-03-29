@@ -24,9 +24,18 @@ const STATE_NAMES = {
   NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York",
   NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma",
   OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
-  SD: "South Dakota", TN: "Tennessee", TX: "Texas", US: "United States",
+  SD: "South Dakota", TN: "Tennessee", TX: "Texas", US: "National (Multi-State)",
   UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia",
   WI: "Wisconsin", WY: "Wyoming",
+};
+
+const CANADIAN_PROVINCES = {
+  "Alberta": "Alberta", "British Columbia": "British Columbia", "Manitoba": "Manitoba",
+  "New Brunswick": "New Brunswick", "Newfoundland & Labrador": "Newfoundland & Labrador",
+  "Northwest Territories": "Northwest Territories", "Nova Scotia": "Nova Scotia",
+  "Nunavut": "Nunavut", "Ontario": "Ontario", "Prince Edward Island": "Prince Edward Island",
+  "Quebec": "Quebec", "Saskatchewan": "Saskatchewan", "Yukon": "Yukon",
+  "Canada": "National (Canada)",
 };
 
 // Error report form URL
@@ -77,6 +86,10 @@ async function init() {
 
   // Event listeners
   document.getElementById("search").addEventListener("input", debounce(applyFilters, 300));
+  document.getElementById("filter-country").addEventListener("change", () => {
+    populateStateDropdown();
+    applyFilters();
+  });
   document.getElementById("filter-state").addEventListener("change", applyFilters);
   document.getElementById("filter-category").addEventListener("change", applyFilters);
   document.getElementById("filter-type").addEventListener("change", applyFilters);
@@ -88,16 +101,20 @@ async function init() {
 
 /* === FILTERS === */
 function populateFilters() {
-  const states = [...new Set(allRecords.map(r => r.state).filter(Boolean))].sort();
+  const countries = [...new Set(allRecords.map(r => r.country).filter(Boolean))].sort();
   const categories = [...new Set(allRecords.map(r => r.category).filter(Boolean))].sort();
 
-  const stateSelect = document.getElementById("filter-state");
-  states.forEach(s => {
+  // Country dropdown
+  const countrySelect = document.getElementById("filter-country");
+  countries.forEach(c => {
     const opt = document.createElement("option");
-    opt.value = s;
-    opt.textContent = STATE_NAMES[s] || s;
-    stateSelect.appendChild(opt);
+    opt.value = c;
+    opt.textContent = c;
+    countrySelect.appendChild(opt);
   });
+
+  // State dropdown — populated dynamically based on country selection
+  populateStateDropdown();
 
   const catSelect = document.getElementById("filter-category");
   categories.forEach(c => {
@@ -108,8 +125,42 @@ function populateFilters() {
   });
 }
 
+function populateStateDropdown() {
+  const countryFilter = document.getElementById("filter-country").value;
+  const stateSelect = document.getElementById("filter-state");
+  const currentVal = stateSelect.value;
+
+  // Clear existing options
+  stateSelect.innerHTML = '<option value="">All States / Provinces</option>';
+
+  // Get states for selected country (or all)
+  let records = allRecords;
+  if (countryFilter) {
+    records = allRecords.filter(r => r.country === countryFilter);
+  }
+
+  const states = [...new Set(records.map(r => r.state).filter(Boolean))].sort((a, b) => {
+    const nameA = STATE_NAMES[a] || CANADIAN_PROVINCES[a] || a;
+    const nameB = STATE_NAMES[b] || CANADIAN_PROVINCES[b] || b;
+    return nameA.localeCompare(nameB);
+  });
+
+  states.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.textContent = STATE_NAMES[s] || CANADIAN_PROVINCES[s] || s;
+    stateSelect.appendChild(opt);
+  });
+
+  // Restore selection if still valid
+  if (currentVal && states.includes(currentVal)) {
+    stateSelect.value = currentVal;
+  }
+}
+
 function applyFilters() {
   const query = document.getElementById("search").value.trim();
+  const countryFilter = document.getElementById("filter-country").value;
   const stateFilter = document.getElementById("filter-state").value;
   const catFilter = document.getElementById("filter-category").value;
   const typeFilter = document.getElementById("filter-type").value;
@@ -126,6 +177,7 @@ function applyFilters() {
 
   // Apply filters
   filteredRecords = results.filter(r => {
+    if (countryFilter && r.country !== countryFilter) return false;
     if (stateFilter && r.state !== stateFilter) return false;
     if (catFilter && r.category !== catFilter) return false;
     if (typeFilter && r.data_type !== typeFilter) return false;
@@ -139,7 +191,7 @@ function applyFilters() {
   updateHashState();
 
   // Show/hide clear button
-  const hasFilters = query || stateFilter || catFilter || typeFilter || yearStart > 0 || yearEnd < 9999;
+  const hasFilters = query || countryFilter || stateFilter || catFilter || typeFilter || yearStart > 0 || yearEnd < 9999;
   document.getElementById("clear-filters").style.display = hasFilters ? "inline-block" : "none";
 }
 
@@ -166,7 +218,8 @@ function renderResults() {
 function renderCard(r) {
   const catLabel = CATEGORY_LABELS[r.category] || r.category || "";
   const catClass = r.category ? `cat-${r.category}` : "";
-  const stateName = STATE_NAMES[r.state] || r.state || "";
+  const stateName = STATE_NAMES[r.state] || CANADIAN_PROVINCES[r.state] || r.state || "";
+  const countryTag = r.country && r.country !== "US" ? ` · ${r.country}` : "";
   const valueDisplay = formatValue(r.value, r.unit, r.data_type);
   const sourceDisplay = cleanSourceName(r.source_report);
   const pageDisplay = r.page ? `Page ${r.page}` : "";
@@ -187,7 +240,7 @@ function renderCard(r) {
   ${valueDisplay ? `<div class="card-value">${valueDisplay}</div>` : ""}
   ${tableNotice}
   <div class="card-meta">
-    <span class="state-name">${esc(stateName)}</span>
+    <span class="state-name">${esc(stateName)}${countryTag}</span>
     ${r.date_range ? ` &middot; ${esc(r.date_range)}` : ""}
   </div>
   <div class="card-source">
@@ -289,6 +342,10 @@ function readHashState() {
 
   const params = new URLSearchParams(hash);
   if (params.has("q")) document.getElementById("search").value = params.get("q");
+  if (params.has("country")) {
+    document.getElementById("filter-country").value = params.get("country");
+    populateStateDropdown();
+  }
   if (params.has("state")) document.getElementById("filter-state").value = params.get("state");
   if (params.has("category")) document.getElementById("filter-category").value = params.get("category");
   if (params.has("type")) document.getElementById("filter-type").value = params.get("type");
@@ -298,6 +355,7 @@ function readHashState() {
 
 function updateHashState() {
   const q = document.getElementById("search").value.trim();
+  const country = document.getElementById("filter-country").value;
   const state = document.getElementById("filter-state").value;
   const cat = document.getElementById("filter-category").value;
   const type = document.getElementById("filter-type").value;
@@ -306,6 +364,7 @@ function updateHashState() {
 
   const params = new URLSearchParams();
   if (q) params.set("q", q);
+  if (country) params.set("country", country);
   if (state) params.set("state", state);
   if (cat) params.set("category", cat);
   if (type) params.set("type", type);
@@ -322,11 +381,20 @@ function updateHashState() {
 
 /* === STATS === */
 function updateStats() {
-  const states = new Set(allRecords.map(r => r.state).filter(Boolean));
   const sources = new Set(allRecords.map(r => r.source_report).filter(Boolean));
+  const countries = new Set(allRecords.map(r => r.country).filter(Boolean));
+
+  // Count actual US states (2-letter codes, excluding "US" which is national-level)
+  const usStates = new Set(
+    allRecords
+      .filter(r => r.country === "US" && r.state && r.state !== "US" && r.state.length === 2)
+      .map(r => r.state)
+  );
+
   document.getElementById("stat-facts").textContent = allRecords.length.toLocaleString();
   document.getElementById("stat-reports").textContent = sources.size;
-  document.getElementById("stat-states").textContent = states.size;
+  document.getElementById("stat-us-states").textContent = usStates.size;
+  document.getElementById("stat-countries").textContent = countries.size;
 }
 
 /* === UTILS === */
@@ -357,11 +425,13 @@ function debounce(fn, ms) {
 /* === CLEAR FILTERS === */
 function clearFilters() {
   document.getElementById("search").value = "";
+  document.getElementById("filter-country").value = "";
   document.getElementById("filter-state").value = "";
   document.getElementById("filter-category").value = "";
   document.getElementById("filter-type").value = "";
   document.getElementById("year-start").value = "";
   document.getElementById("year-end").value = "";
+  populateStateDropdown();
   applyFilters();
 }
 

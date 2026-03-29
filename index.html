@@ -6,12 +6,12 @@
   <title>Fact Engine | Cannabis Wise Guys</title>
   <meta name="description" content="Searchable database of sourced cannabis policy and market data. Every fact links to its government source.">
   <meta property="og:title" content="Fact Engine | Cannabis Wise Guys">
-  <meta property="og:description" content="1,400+ sourced facts from government cannabis reports. Search by state, topic, or keyword.">
+  <meta property="og:description" content="3,600+ sourced facts from government cannabis reports. Search by state, country, topic, or keyword.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="assets/cwg-logo.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Cannabis Fact Engine | Cannabis Wise Guys">
-  <meta name="twitter:description" content="1,400+ sourced facts from government cannabis reports. Search by state, topic, or keyword.">
+  <meta name="twitter:description" content="3,600+ sourced facts from government cannabis reports. Search by state, country, topic, or keyword.">
   <link rel="icon" href="assets/cwg-crest.png" type="image/png">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js" defer></script>
@@ -40,7 +40,8 @@
     <div class="header-stats-bar">
       <div class="stat-pill"><span id="stat-facts">--</span> facts</div>
       <div class="stat-pill"><span id="stat-reports">--</span> reports</div>
-      <div class="stat-pill"><span id="stat-states">--</span> states</div>
+      <div class="stat-pill"><span id="stat-us-states">--</span> US states</div>
+      <div class="stat-pill"><span id="stat-countries">--</span> countries</div>
       <div class="stat-divider"></div>
       <div class="stat-updated">Updated March 2026</div>
     </div>
@@ -66,8 +67,11 @@
       <input type="text" id="search" class="search-box" placeholder="Search facts, e.g. &quot;Illinois social equity&quot; or &quot;tax revenue&quot;" autocomplete="off" spellcheck="false">
     </div>
     <div class="filter-row">
+      <select id="filter-country" class="filter-select">
+        <option value="">All Countries</option>
+      </select>
       <select id="filter-state" class="filter-select">
-        <option value="">All States</option>
+        <option value="">All States / Provinces</option>
       </select>
       <select id="filter-category" class="filter-select">
         <option value="">All Categories</option>
