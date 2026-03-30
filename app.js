@@ -51,6 +51,32 @@ var TYPE_LABELS = {
   derived:"Derived",milestone:"Milestone",methodology:"Other",date:"Date"
 };
 
+var STATE_DATA_PORTALS = {
+  MA: {url:"https://masscannabiscontrol.com/open-data/", label:"MA Open Data (CSV)"},
+  CO: {url:"https://cdor.colorado.gov/data-and-reports/marijuana-data", label:"CO Marijuana Data"},
+  CT: {url:"https://data.ct.gov/Health-and-Human-Services/Cannabis-Retail-Sales-by-Week-Ending/ucaf-96h6", label:"CT Cannabis Data (API)"},
+  NM: {url:"https://crop.rld.nm.gov", label:"NM C.R.O.P. Dashboard"},
+  WA: {url:"https://lcb.wa.gov/research/dashboards", label:"WA LCB Dashboards"},
+  VT: {url:"https://ccb.vermont.gov/licenses", label:"VT Cannabis Control Board"},
+  IL: {url:"https://cannabis.illinois.gov/research-and-data/sales-figures.html", label:"IL Sales Data"},
+  ME: {url:"https://www.maine.gov/dafs/ocp/open-data", label:"ME Open Data"},
+  MN: {url:"https://mn.gov/ocm/data-reports/dashboards/cannabis-market-monitor.jsp", label:"MN Market Monitor"},
+  MO: {url:"https://health.mo.gov/safety/cannabis/stats.php", label:"MO Cannabis Stats"},
+  MT: {url:"https://revenue.mt.gov/card/cannabis/retail-price-studies/", label:"MT Price Studies"},
+  OR: {url:"https://www.oregon.gov/olcc/marijuana/pages/marijuana-market-data.aspx", label:"OR Market Data"},
+  RI: {url:"https://ccc.ri.gov/cannabis-industry-data", label:"RI Industry Data"},
+  VA: {url:"https://cca.virginia.gov", label:"VA CCA Dashboard"},
+  NY: {url:"https://data.ny.gov", label:"NY Open Data (Licensing)"},
+  CA: {url:"https://www.cannabis.ca.gov/resources/data-dashboard/", label:"CA DCC Dashboard"},
+  MD: {url:"https://cannabis.maryland.gov/pages/data-dashboard.aspx", label:"MD Data Dashboard"},
+  AZ: {url:"https://www.azdhs.gov/documents/licensing/medical-marijuana/reports/", label:"AZ Monthly Reports (PDF)"},
+  MI: {url:"https://www.michigan.gov/cra/resources/cannabis-regulatory-agency-licensing-reports/cannabis-regulatory-agency-statistical-report", label:"MI Statistical Reports (PDF)"},
+  NV: {url:"https://ccb.nv.gov/", label:"NV Cannabis Compliance Board"},
+  OH: {url:"https://com.ohio.gov/divisions-and-programs/cannabis-control/", label:"OH Cannabis Control"},
+  NJ: {url:"https://www.nj.gov/cannabis/", label:"NJ Cannabis Regulatory Commission"},
+  AK: {url:"https://health.alaska.gov/en/education/drugs-and-alcohol/marijuana/marijuana-data-and-reports/", label:"AK Data & Reports"}
+};
+
 var ERROR_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfAr0l1d53il4pEHlu4jAwLkUxKMjcnUEIP-QMptX56DLG4LQ/viewform?usp=pp_url&entry.70049677=";
 var ANALYSIS_URL = "https://cannabiswiseguys.com/contact/";
 
@@ -501,7 +527,10 @@ function renderStatePage(code) {
   out+='<span><strong>'+srcCount+'</strong> reports</span>';
   if(dollars) out+='<span><strong>'+dollars+'</strong> dollar values</span>';
   if(pcts) out+='<span><strong>'+pcts+'</strong> percentages</span>';
-  out+='</div></div>';
+  out+='</div>';
+  var portal=STATE_DATA_PORTALS[code];
+  if(portal) out+='<a class="sp-portal" href="'+h(portal.url)+'" target="_blank" rel="noopener">'+h(portal.label)+' &rarr;</a>';
+  out+='</div>';
 
   if(latestReport){
     out+='<div class="sp-report">';
@@ -718,7 +747,10 @@ function openRecord(id) {
   if(r.source_report) out+=' <a href="#" onclick="openSrc(event,\''+ha(r.source_report)+'\','+(r.page||0)+')">[View]</a>';
   if(r.notes) out+='<br>Notes: '+h(r.notes);
   out+='</div>';
-  if(r.context) out+='<div class="modal-ctx">&ldquo;'+h(r.context)+'&rdquo;</div>';
+  if(r.context){
+    out+='<div class="d-ctx-toggle" onclick="this.classList.toggle(\'open\');this.nextElementSibling.classList.toggle(\'open\')"><span class="arr">&#9654;</span> View original context</div>';
+    out+='<div class="modal-ctx">&ldquo;'+h(r.context)+'&rdquo;</div>';
+  }
   body.innerHTML=out;
 
   actions.innerHTML='<button class="act" onclick="cite(this,\''+ha(r.id||"")+'\')">Copy Citation</button>'

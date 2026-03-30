@@ -942,6 +942,23 @@ a.src-name:hover { color: var(--green); }
   color: var(--green);
 }
 
+.sp-portal {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--green);
+  text-decoration: none;
+  border: 1px solid var(--green-border);
+  padding: 4px 12px;
+  border-radius: 2px;
+  position: relative;
+}
+
+.sp-portal:hover {
+  background: var(--green-lo);
+}
+
 /* featured report */
 .sp-report {
   margin: 16px 24px;
