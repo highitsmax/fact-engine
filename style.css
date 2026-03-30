@@ -16,7 +16,7 @@
   --green-border: rgba(45,212,168,.25);
   --amber: #f0b429;
   --red: #ef6b6b;
-  --serif: 'Playfair Display', Georgia, serif;
+  --brand: 'Montserrat', sans-serif;
   --sans: 'IBM Plex Sans', system-ui, sans-serif;
   --mono: 'IBM Plex Mono', 'SF Mono', monospace;
 }
@@ -104,11 +104,11 @@ body {
 .sidebar-brand { flex: 1; }
 
 .brand-name {
-  font-family: var(--serif);
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: .01em;
+  font-family: var(--brand);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .05em;
   color: var(--t1);
 }
 
@@ -441,7 +441,7 @@ details[open] > .filter-label::before {
 }
 
 .topbar-title {
-  font-family: var(--serif);
+  font-family: var(--brand);
   font-size: 14px;
   font-weight: 700;
   color: var(--t2);
@@ -482,12 +482,13 @@ details[open] > .filter-label::before {
 }
 
 .mh-name {
-  font-family: var(--serif);
-  font-size: 20px;
+  font-family: var(--brand);
+  font-size: 18px;
   font-weight: 700;
-  color: var(--t3);
-  letter-spacing: .02em;
+  color: var(--t2);
+  letter-spacing: .08em;
   margin-top: 4px;
+  text-transform: uppercase;
 }
 
 .mobile-header-brand {
@@ -806,6 +807,36 @@ a.src-name:hover { color: var(--green); }
 
 .pg:disabled { opacity: .25; cursor: default; }
 .pg-dots { font-size: 11px; color: var(--t3); padding: 0 3px; }
+
+/* footer */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 20px 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.footer-links a {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--t3);
+  text-decoration: none;
+}
+
+.footer-links a:hover { color: var(--green); }
+
+.footer-copy {
+  font-size: 11px;
+  color: var(--t3);
+}
 
 /* empty / loading */
 .state-msg {
