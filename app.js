@@ -1,533 +1,421 @@
-/* Cannabis Fact Engine - app.js */
+var PER_PAGE = 50;
 
-const ITEMS_PER_PAGE = 50;
-const CATEGORY_LABELS = {
-  market_size_revenue: "Market Size & Revenue",
-  licensing: "Licensing",
-  social_equity: "Social Equity",
-  compliance_enforcement: "Compliance & Enforcement",
-  pricing: "Pricing",
-  demand_consumption: "Demand & Consumption",
-  regulatory_structure: "Regulatory Structure",
-  public_health_safety: "Public Health & Safety",
-  supply_chain: "Supply Chain",
-  employment_economics: "Employment & Economics",
+var CATEGORY_NORMALIZE = {
+  licensing: "Licensing", Licensing: "Licensing",
+  social_equity: "Social Equity", "Social Equity": "Social Equity",
+  "Racial Disparity": "Social Equity",
+  compliance_enforcement: "Compliance", enforcement: "Compliance",
+  regulation: "Regulation", regulatory_structure: "Regulation", Legal: "Regulation",
+  public_health_safety: "Public Health", public_health: "Public Health",
+  employment_economics: "Employment", employment: "Employment",
+  demand_consumption: "Consumption", consumption: "Consumption",
+  demographics: "Demographics", Demographics: "Demographics",
+  policy: "Policy", Policy: "Policy", "Policy Recommendations": "Policy",
+  market_size_revenue: "Market & Revenue", Sales: "Market & Revenue",
+  Economy: "Market & Revenue", "Economic Development": "Market & Revenue",
+  "Market Structure": "Market & Revenue",
+  pricing: "Pricing", supply_chain: "Supply Chain",
+  taxation: "Taxation", production: "Production",
+  "Criminal Justice": "Criminal Justice",
+  Barriers: "Other", Geography: "Other", Methodology: "Other", other: "Other"
 };
 
-const STATE_NAMES = {
-  AK: "Alaska", AL: "Alabama", AZ: "Arizona", AR: "Arkansas", CA: "California",
-  CO: "Colorado", CT: "Connecticut", DC: "District of Columbia", DE: "Delaware",
-  FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho", IL: "Illinois",
-  IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana",
-  ME: "Maine", MD: "Maryland", MA: "Massachusetts", MI: "Michigan", MN: "Minnesota",
-  MS: "Mississippi", MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada",
-  NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York",
-  NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma",
-  OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
-  SD: "South Dakota", TN: "Tennessee", TX: "Texas", US: "National (Multi-State)",
-  UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia",
-  WI: "Wisconsin", WY: "Wyoming",
+var STATE_NAMES = {
+  AK:"Alaska",AL:"Alabama",AZ:"Arizona",AR:"Arkansas",CA:"California",
+  CO:"Colorado",CT:"Connecticut",DC:"District of Columbia",DE:"Delaware",
+  FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",
+  IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",
+  ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",
+  MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",
+  NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",
+  NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",
+  OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",
+  SD:"South Dakota",TN:"Tennessee",TX:"Texas",US:"National (US)",
+  UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",
+  WI:"Wisconsin",WY:"Wyoming"
 };
 
-const CANADIAN_PROVINCES = {
-  "Alberta": "Alberta", "British Columbia": "British Columbia", "Manitoba": "Manitoba",
-  "New Brunswick": "New Brunswick", "Newfoundland & Labrador": "Newfoundland & Labrador",
-  "Northwest Territories": "Northwest Territories", "Nova Scotia": "Nova Scotia",
-  "Nunavut": "Nunavut", "Ontario": "Ontario", "Prince Edward Island": "Prince Edward Island",
-  "Quebec": "Quebec", "Saskatchewan": "Saskatchewan", "Yukon": "Yukon",
-  "Canada": "National (Canada)",
+var PROVINCES = {
+  Alberta:"Alberta","British Columbia":"British Columbia",Manitoba:"Manitoba",
+  "New Brunswick":"New Brunswick","Newfoundland & Labrador":"Newfoundland & Labrador",
+  "Northwest Territories":"Northwest Territories","Nova Scotia":"Nova Scotia",
+  Nunavut:"Nunavut",Ontario:"Ontario","Prince Edward Island":"Prince Edward Island",
+  Quebec:"Quebec",Saskatchewan:"Saskatchewan",Yukon:"Yukon",Canada:"National (Canada)"
 };
 
-// Error report form URL
-const ERROR_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfAr0l1d53il4pEHlu4jAwLkUxKMjcnUEIP-QMptX56DLG4LQ/viewform?usp=pp_url&entry.70049677=";
-// Lead capture URL
-const ANALYSIS_URL = "https://cannabiswiseguys.com/contact/";
+var TYPE_LABELS = {
+  statistic:"Statistic",finding:"Finding",table:"Table",table_data:"Table",
+  quantitative:"Quantitative",qualitative:"Qualitative",survey:"Survey",
+  survey_result:"Survey",policy:"Policy",recommendation:"Policy",
+  legal_provision:"Legal",estimate:"Estimate",projection:"Projection",
+  derived:"Derived",milestone:"Milestone",methodology:"Other",date:"Date"
+};
 
-let allRecords = [];
-let filteredRecords = [];
-let sourceUrls = {};
-let fuse = null;
-let currentPage = 1;
+var ERROR_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfAr0l1d53il4pEHlu4jAwLkUxKMjcnUEIP-QMptX56DLG4LQ/viewform?usp=pp_url&entry.70049677=";
+var ANALYSIS_URL = "https://cannabiswiseguys.com/contact/";
 
-/* === INIT === */
+var allRecords = [], filteredRecords = [], sourceUrls = {}, fuse = null, page = 1;
+var filters = { countries:[], states:[], categories:[], types:[] };
+
 async function init() {
-  document.getElementById("results").innerHTML = '<div class="loading">Loading database...</div>';
-
   try {
-    const [dbResp, urlResp] = await Promise.all([
-      fetch("data/cannabis_database.json"),
-      fetch("data/source_urls.json"),
-    ]);
-    allRecords = await dbResp.json();
-    sourceUrls = await urlResp.json();
-  } catch (e) {
-    document.getElementById("results").innerHTML =
-      '<div class="empty-state"><h2>Failed to load database</h2><p>Please try refreshing the page.</p></div>';
+    var r = await Promise.all([fetch("data/cannabis_database.json"), fetch("data/source_urls.json")]);
+    allRecords = await r[0].json();
+    sourceUrls = await r[1].json();
+  } catch(e) {
+    document.getElementById("results").innerHTML = '<div class="state-msg">Failed to load. Refresh the page.</div>';
     return;
   }
 
-  // Init Fuse.js
   fuse = new Fuse(allRecords, {
-    keys: [
-      { name: "claim", weight: 3 },
-      { name: "context", weight: 1 },
-      { name: "notes", weight: 1 },
-      { name: "subcategory", weight: 0.5 },
-    ],
-    threshold: 0.35,
-    includeScore: true,
-    minMatchCharLength: 2,
+    keys:[{name:"claim",weight:3},{name:"context",weight:1},{name:"notes",weight:1},{name:"subcategory",weight:.5}],
+    threshold:.35, includeScore:true, minMatchCharLength:2
   });
 
-  populateFilters();
-  updateStats();
-  readHashState();
-  applyFilters();
+  buildFilters();
+  stats();
+  readHash();
+  run();
 
-  // Event listeners
-  document.getElementById("search").addEventListener("input", debounce(applyFilters, 300));
-  document.getElementById("filter-country").addEventListener("change", () => {
-    populateStateDropdown();
-    applyFilters();
-  });
-  document.getElementById("filter-state").addEventListener("change", applyFilters);
-  document.getElementById("filter-category").addEventListener("change", applyFilters);
-  document.getElementById("filter-type").addEventListener("change", applyFilters);
-  document.getElementById("year-start").addEventListener("change", applyFilters);
-  document.getElementById("year-end").addEventListener("change", applyFilters);
-
-  window.addEventListener("hashchange", () => { readHashState(); applyFilters(); });
+  document.getElementById("search").addEventListener("input", debounce(function(){ page=1; run(); }, 250));
+  document.getElementById("year-start").addEventListener("change", function(){ page=1; run(); });
+  document.getElementById("year-end").addEventListener("change", function(){ page=1; run(); });
+  window.addEventListener("hashchange", function(){ readHash(); run(); });
 }
 
-/* === FILTERS === */
-function populateFilters() {
-  const countries = [...new Set(allRecords.map(r => r.country).filter(Boolean))].sort();
-  const categories = [...new Set(allRecords.map(r => r.category).filter(Boolean))].sort();
-
-  // Country dropdown
-  const countrySelect = document.getElementById("filter-country");
-  countries.forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c;
-    opt.textContent = c;
-    countrySelect.appendChild(opt);
+function buildFilters() {
+  var cc={}, sc={}, cat={}, tc={};
+  allRecords.forEach(function(r){
+    if(r.country) cc[r.country]=(cc[r.country]||0)+1;
+    if(r.state){
+      var n=STATE_NAMES[r.state]||PROVINCES[r.state]||r.state;
+      if(!sc[r.state]) sc[r.state]={n:n,c:0};
+      sc[r.state].c++;
+    }
+    if(r.category){
+      var norm=CATEGORY_NORMALIZE[r.category]||r.category;
+      cat[norm]=(cat[norm]||0)+1;
+    }
+    if(r.data_type){
+      var tl=TYPE_LABELS[r.data_type]||r.data_type;
+      tc[tl]=(tc[tl]||0)+1;
+    }
   });
 
-  // State dropdown — populated dynamically based on country selection
-  populateStateDropdown();
+  renderChecks("filter-countries", cc, "country");
 
-  const catSelect = document.getElementById("filter-category");
-  categories.forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c;
-    opt.textContent = CATEGORY_LABELS[c] || c;
-    catSelect.appendChild(opt);
-  });
+  var ss=Object.entries(sc).sort(function(a,b){return a[1].n.localeCompare(b[1].n);});
+  var so={}; ss.forEach(function(e){so[e[0]]=e[1].c;});
+  renderChecksNamed("filter-states", so, sc, "state");
+
+  var cs=Object.entries(cat).sort(function(a,b){return b[1]-a[1];});
+  var co={}; cs.forEach(function(e){co[e[0]]=e[1];});
+  renderChecks("filter-categories", co, "category");
+
+  var ts=Object.entries(tc).sort(function(a,b){return b[1]-a[1];});
+  var to={}; ts.forEach(function(e){to[e[0]]=e[1];});
+  renderChecks("filter-types", to, "type");
 }
 
-function populateStateDropdown() {
-  const countryFilter = document.getElementById("filter-country").value;
-  const stateSelect = document.getElementById("filter-state");
-  const currentVal = stateSelect.value;
-
-  // Clear existing options
-  stateSelect.innerHTML = '<option value="">All States / Provinces</option>';
-
-  // Get states for selected country (or all)
-  let records = allRecords;
-  if (countryFilter) {
-    records = allRecords.filter(r => r.country === countryFilter);
-  }
-
-  const states = [...new Set(records.map(r => r.state).filter(Boolean))].sort((a, b) => {
-    const nameA = STATE_NAMES[a] || CANADIAN_PROVINCES[a] || a;
-    const nameB = STATE_NAMES[b] || CANADIAN_PROVINCES[b] || b;
-    return nameA.localeCompare(nameB);
-  });
-
-  states.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s;
-    opt.textContent = STATE_NAMES[s] || CANADIAN_PROVINCES[s] || s;
-    stateSelect.appendChild(opt);
-  });
-
-  // Restore selection if still valid
-  if (currentVal && states.includes(currentVal)) {
-    stateSelect.value = currentVal;
-  }
+function renderChecks(id, counts, group) {
+  document.getElementById(id).innerHTML = Object.entries(counts).map(function(e){
+    return '<label class="filter-check"><input type="checkbox" value="'+h(e[0])+'" data-group="'+group+'" onchange="onCheck()">'+
+      '<span class="filter-check-name">'+h(e[0])+'</span><span class="filter-check-ct">'+e[1]+'</span></label>';
+  }).join("");
 }
 
-function applyFilters() {
-  const query = document.getElementById("search").value.trim();
-  const countryFilter = document.getElementById("filter-country").value;
-  const stateFilter = document.getElementById("filter-state").value;
-  const catFilter = document.getElementById("filter-category").value;
-  const typeFilter = document.getElementById("filter-type").value;
-  const yearStart = parseInt(document.getElementById("year-start").value) || 0;
-  const yearEnd = parseInt(document.getElementById("year-end").value) || 9999;
+function renderChecksNamed(id, counts, meta, group) {
+  document.getElementById(id).innerHTML = Object.entries(counts).map(function(e){
+    var dn=meta[e[0]]?meta[e[0]].n:e[0];
+    return '<label class="filter-check"><input type="checkbox" value="'+h(e[0])+'" data-group="'+group+'" onchange="onCheck()">'+
+      '<span class="filter-check-name">'+h(dn)+'</span><span class="filter-check-ct">'+e[1]+'</span></label>';
+  }).join("");
+}
 
-  // Search or use all
-  let results;
-  if (query.length >= 2) {
-    results = fuse.search(query).map(r => r.item);
-  } else {
-    // Default sort: newest first
-    results = [...allRecords].sort((a, b) => {
-      return getLatestYear(b) - getLatestYear(a);
-    });
-  }
+function onCheck() {
+  filters.countries=checked("country");
+  filters.states=checked("state");
+  filters.categories=checked("category");
+  filters.types=checked("type");
+  page=1;
+  run();
+}
 
-  // Apply filters
-  filteredRecords = results.filter(r => {
-    if (countryFilter && r.country !== countryFilter) return false;
-    if (stateFilter && r.state !== stateFilter) return false;
-    if (catFilter && r.category !== catFilter) return false;
-    if (typeFilter && r.data_type !== typeFilter) return false;
-    if (r.year_end && r.year_end < yearStart) return false;
-    if (r.year_start && r.year_start > yearEnd) return false;
+function checked(g) {
+  return Array.from(document.querySelectorAll('input[data-group="'+g+'"]:checked')).map(function(c){return c.value;});
+}
+
+function run() {
+  var q=document.getElementById("search").value.trim();
+  var ys=parseInt(document.getElementById("year-start").value)||0;
+  var ye=parseInt(document.getElementById("year-end").value)||9999;
+
+  var list;
+  if(q.length>=2) list=fuse.search(q).map(function(r){return r.item;});
+  else list=allRecords.slice().sort(function(a,b){return latestYear(b)-latestYear(a);});
+
+  filteredRecords=list.filter(function(r){
+    if(filters.countries.length && filters.countries.indexOf(r.country)===-1) return false;
+    if(filters.states.length && filters.states.indexOf(r.state)===-1) return false;
+    if(filters.categories.length){
+      var norm=CATEGORY_NORMALIZE[r.category]||r.category;
+      if(filters.categories.indexOf(norm)===-1) return false;
+    }
+    if(filters.types.length){
+      var tl=TYPE_LABELS[r.data_type]||r.data_type;
+      if(filters.types.indexOf(tl)===-1) return false;
+    }
+    if(r.year_end && r.year_end<ys) return false;
+    if(r.year_start && r.year_start>ye) return false;
     return true;
   });
 
-  currentPage = 1;
-  renderResults();
-  updateHashState();
-
-  // Show/hide clear button
-  const hasFilters = query || countryFilter || stateFilter || catFilter || typeFilter || yearStart > 0 || yearEnd < 9999;
-  document.getElementById("clear-filters").style.display = hasFilters ? "inline-block" : "none";
+  render();
+  paginate();
+  writeHash();
+  showClear();
 }
 
-/* === RENDER === */
-function renderResults() {
-  const container = document.getElementById("results");
-  const count = document.getElementById("result-count");
-  const showing = Math.min(currentPage * ITEMS_PER_PAGE, filteredRecords.length);
-
-  count.textContent = `Showing ${showing} of ${filteredRecords.length} results`;
-
-  if (filteredRecords.length === 0) {
-    container.innerHTML = '<div class="empty-state"><h2>No results found</h2><p>Try adjusting your search or filters.</p></div>';
-    document.getElementById("load-more-wrap").style.display = "none";
-    return;
-  }
-
-  const slice = filteredRecords.slice(0, currentPage * ITEMS_PER_PAGE);
-  container.innerHTML = slice.map(renderCard).join("");
-  document.getElementById("load-more-wrap").style.display =
-    showing < filteredRecords.length ? "block" : "none";
+function render() {
+  var el=document.getElementById("results");
+  var ct=document.getElementById("result-count");
+  var tot=filteredRecords.length;
+  var tp=Math.ceil(tot/PER_PAGE)||1;
+  if(page>tp) page=tp;
+  var s=(page-1)*PER_PAGE, e=Math.min(s+PER_PAGE,tot);
+  ct.textContent=tot===0?"No results":(s+1)+"\u2013"+e+" of "+tot.toLocaleString();
+  if(!tot){ el.innerHTML='<div class="state-msg">No matching records.</div>'; return; }
+  el.innerHTML=filteredRecords.slice(s,e).map(renderRow).join("");
 }
 
-function renderCard(r) {
-  const catLabel = CATEGORY_LABELS[r.category] || r.category || "";
-  const catClass = r.category ? `cat-${r.category}` : "";
-  const stateName = STATE_NAMES[r.state] || CANADIAN_PROVINCES[r.state] || r.state || "";
-  const countryTag = r.country && r.country !== "US" ? ` · ${r.country}` : "";
-  const valueDisplay = formatValue(r.value, r.unit, r.data_type);
-  const sourceDisplay = cleanSourceName(r.source_report);
-  const pageDisplay = r.page ? `Page ${r.page}` : "";
-  const contextId = `ctx-${(r.id || "").replace(/[^a-zA-Z0-9]/g, "_")}`;
+function renderRow(r) {
+  var yr=extractYr(r);
+  var src=srcName(r.source_report);
+  var cat=CATEGORY_NORMALIZE[r.category]||r.category||"";
+  var claim=r.claim||"";
+  var val=fmtVal(r.value,r.unit,r.data_type);
+  var rid="r_"+(r.id||"").replace(/[^a-zA-Z0-9]/g,"_");
+  var cid="cx_"+rid;
+  var sn=STATE_NAMES[r.state]||PROVINCES[r.state]||r.state||"";
+  var pg=r.page?"p."+r.page:"";
 
-  // Table fallback for Phase 1
-  let tableNotice = "";
-  if (r.data_type === "table") {
-    tableNotice = `<div class="card-table-notice">Data contained in complex table. View the source document for full details.</div>`;
+  var det='<div class="row-detail"><div class="d-id">'+h(r.id||"")+'</div><div class="d-meta">';
+  if(sn) det+='<b>'+h(sn)+'</b>';
+  if(r.country==="Canada") det+=' (Canada)';
+  if(r.date_range) det+=' &middot; '+h(r.date_range);
+  det+='<br>Source: '+h(src);
+  if(pg) det+=', '+pg;
+  if(r.source_report) det+=' <a href="#" onclick="openSrc(event,\''+ha(r.source_report)+'\','+(r.page||0)+')">[View]</a>';
+  if(r.notes) det+='<br>Notes: '+h(r.notes);
+  det+='</div>';
+
+  if(r.context){
+    det+='<div class="d-ctx-toggle" onclick="togCtx(\''+cid+'\',this)"><span class="arr">&#9654;</span> View original context</div>';
+    det+='<div class="d-ctx" id="'+cid+'">&ldquo;'+h(r.context)+'&rdquo;</div>';
   }
 
-  return `<div class="card">
-  <div class="card-header">
-    <span class="card-id">${esc(r.id || "")}</span>
-    <span class="card-category ${catClass}">${esc(catLabel)}</span>
-  </div>
-  <div class="card-claim">${esc(r.claim || "")}</div>
-  ${valueDisplay ? `<div class="card-value">${valueDisplay}</div>` : ""}
-  ${tableNotice}
-  <div class="card-meta">
-    <span class="state-name">${esc(stateName)}${countryTag}</span>
-    ${r.date_range ? ` &middot; ${esc(r.date_range)}` : ""}
-  </div>
-  <div class="card-source">
-    Source: ${esc(sourceDisplay)}${pageDisplay ? `, <span class="page-num">${pageDisplay}</span>` : ""}
-    ${r.source_report ? ` <a href="#" onclick="viewSource(event, '${esc(r.source_report)}', ${r.page || 0})">[View Source]</a>` : ""}
-  </div>
-  ${r.context ? `
-  <div class="card-context-toggle" onclick="toggleContext('${contextId}', this)">
-    <span class="arrow">&#9654;</span> View original context
-  </div>
-  <div class="card-context" id="${contextId}">"${esc(r.context)}"</div>
-  ` : ""}
-  <div class="card-actions">
-    <button class="btn btn-cite" onclick="copyCitation(this, '${esc(r.id || "")}')">&#128203; Copy Citation</button>
-    <a class="btn btn-error" href="${ERROR_FORM_URL}${encodeURIComponent(r.id || "")}" target="_blank" rel="noopener">&#9888; Report Error</a>
-    <a class="btn btn-analysis" href="${ANALYSIS_URL}" target="_blank" rel="noopener">&#128200; Request Analysis</a>
-  </div>
-</div>`;
+  det+='<div class="d-actions">';
+  det+='<button class="act" onclick="cite(this,\''+ha(r.id||"")+'\')">Copy Citation</button>';
+  det+='<a class="act act--dim" href="'+ERROR_FORM+encodeURIComponent(r.id||"")+'" target="_blank" rel="noopener">Report Error</a>';
+  det+='<a class="act" href="'+ANALYSIS_URL+'" target="_blank" rel="noopener">Request Analysis</a>';
+  det+='</div></div>';
+
+  return '<div class="row" id="'+rid+'">'+
+    '<div class="row-summary" onclick="togRow(\''+rid+'\')">'+
+    '<span class="c c-yr">'+h(yr)+'</span>'+
+    '<span class="c c-src">'+h(src)+'</span>'+
+    '<span class="c c-cat">'+h(cat)+'</span>'+
+    '<span class="c c-desc">'+hlVal(h(claim))+'</span>'+
+    '<span class="c c-val">'+val+'</span>'+
+    '<span class="c c-exp">&#8250;</span>'+
+    '</div>'+det+'</div>';
 }
 
-/* === VALUE FORMATTING === */
-function formatValue(value, unit, dataType) {
-  if (value === null || value === undefined) return "";
-  if (dataType === "finding") return "";
+function togRow(id){ var e=document.getElementById(id); if(e) e.classList.toggle("expanded"); }
+function togCtx(id,t){ var e=document.getElementById(id); if(e){ e.classList.toggle("open"); t.classList.toggle("open"); } }
 
-  const num = Number(value);
-  if (isNaN(num)) return `${value} ${unit || ""}`.trim();
+function paginate() {
+  var el=document.getElementById("pagination");
+  var tot=filteredRecords.length, tp=Math.ceil(tot/PER_PAGE)||1;
+  if(tp<=1){ el.innerHTML=""; return; }
 
-  if (unit === "USD" || unit === "USD_millions") {
-    return "$" + formatNumber(num);
-  }
-  if (unit === "percent" || unit === "percent_monthly") {
-    return num.toLocaleString(undefined, { maximumFractionDigits: 2 }) + "%";
-  }
-  if (unit === "count") {
-    return formatNumber(num);
-  }
-  if (unit && unit.startsWith("USD_per_")) {
-    const per = unit.replace("USD_per_", "/");
-    return "$" + num.toLocaleString(undefined, { maximumFractionDigits: 2 }) + per;
-  }
-
-  const formatted = formatNumber(num);
-  return unit ? `${formatted} ${unit}` : formatted;
+  var out='<button class="pg" onclick="go('+(page-1)+')"'+(page<=1?' disabled':'')+'>&#8249;</button>';
+  var range=pgRange(page,tp), prev=0;
+  range.forEach(function(p){
+    if(p-prev>1) out+='<span class="pg-dots">&hellip;</span>';
+    out+='<button class="pg'+(p===page?' on':'')+'" onclick="go('+p+')">'+p+'</button>';
+    prev=p;
+  });
+  out+='<button class="pg" onclick="go('+(page+1)+')"'+(page>=tp?' disabled':'')+'>&#8250;</button>';
+  el.innerHTML=out;
 }
 
-function formatNumber(n) {
-  if (Math.abs(n) >= 1_000_000_000) return "$" !== "$" ? (n / 1e9).toFixed(1) + "B" : (n / 1e9).toFixed(1) + "B";
-  if (Math.abs(n) >= 1_000_000) return (n / 1e6).toFixed(1) + "M";
-  return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+function pgRange(cur,tot) {
+  if(tot<=7){ var a=[]; for(var i=1;i<=tot;i++) a.push(i); return a; }
+  var p=[1], lo=Math.max(2,cur-1), hi=Math.min(tot-1,cur+1);
+  for(var j=lo;j<=hi;j++) if(p.indexOf(j)===-1) p.push(j);
+  if(p.indexOf(tot)===-1) p.push(tot);
+  return p.sort(function(a,b){return a-b;});
 }
 
-/* === ACTIONS === */
-function copyCitation(btn, recordId) {
-  const r = allRecords.find(rec => rec.id === recordId);
-  if (!r) return;
+function go(n) {
+  var tp=Math.ceil(filteredRecords.length/PER_PAGE)||1;
+  if(n<1||n>tp) return;
+  page=n; render(); paginate(); writeHash();
+  document.getElementById("content").scrollTo({top:0,behavior:"smooth"});
+}
 
-  const source = cleanSourceName(r.source_report);
-  const page = r.page ? `, p.${r.page}` : "";
-  const citation = `"${r.claim}"\n(${source}${page})\nvia Cannabis Wise Guys Fact Engine — cannabiswiseguys.com/data`;
+function extractYr(r) {
+  if(r.year_end) return String(r.year_end);
+  if(r.year_start) return String(r.year_start);
+  if(r.date_range){ var m=r.date_range.match(/\b(19|20)\d{2}\b/g); if(m) return String(Math.max.apply(null,m.map(Number))); }
+  return "";
+}
 
-  navigator.clipboard.writeText(citation).then(() => {
-    btn.classList.add("btn-copied");
-    btn.innerHTML = "&#10003; Copied!";
-    setTimeout(() => {
-      btn.classList.remove("btn-copied");
-      btn.innerHTML = "&#128203; Copy Citation";
-    }, 2000);
+function fmtVal(v,u,dt) {
+  if(v==null) return "";
+  if(dt==="finding"||dt==="qualitative") return "";
+  var n=Number(v);
+  if(isNaN(n)) return h(String(v));
+  if(u==="USD"||u==="USD_millions"||u==="million USD"||u==="billion USD"||u==="dollars"||u==="million dollars") return "$"+abbr(n);
+  if(u==="CAD"||u==="million_CAD") return "C$"+abbr(n);
+  if(u&&u.indexOf("percent")!==-1) return n.toLocaleString(undefined,{maximumFractionDigits:1})+"%";
+  return abbr(n);
+}
+
+function abbr(n) {
+  var a=Math.abs(n);
+  if(a>=1e9) return (n/1e9).toFixed(1)+"B";
+  if(a>=1e6) return (n/1e6).toFixed(1)+"M";
+  if(a>=1e3) return (n/1e3).toFixed(1)+"K";
+  return n.toLocaleString(undefined,{maximumFractionDigits:1});
+}
+
+function hlVal(text) {
+  return text.replace(/\$[\d,]+(?:\.\d+)?(?:\s*(?:billion|million|thousand))?/gi, function(m){ return '<span class="hl">'+m+'</span>'; });
+}
+
+function cite(btn,id) {
+  var r=allRecords.find(function(x){return x.id===id;});
+  if(!r) return;
+  var s=srcName(r.source_report), pg=r.page?", p."+r.page:"";
+  navigator.clipboard.writeText('"'+r.claim+'"\n('+s+pg+')\nvia Cannabis Factbook — cannabiswiseguys.com').then(function(){
+    btn.classList.add("copied"); btn.textContent="Copied";
+    setTimeout(function(){ btn.classList.remove("copied"); btn.textContent="Copy Citation"; },1800);
   });
 }
 
-function toggleContext(id, toggle) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.classList.toggle("open");
-    toggle.classList.toggle("open");
-  }
+function openSrc(e,src,pg) {
+  e.preventDefault(); e.stopPropagation();
+  var url=sourceUrls[src];
+  if(url) window.open(url+(pg?"#page="+pg:""),"_blank","noopener");
 }
 
-function viewSource(event, sourceReport, page) {
-  event.preventDefault();
-  const url = sourceUrls[sourceReport] || null;
-  if (url) {
-    const pageStr = page ? `#page=${page}` : "";
-    window.open(url + pageStr, "_blank", "noopener");
-  }
-  // No alert for unmapped sources — the page number is visible on the card
+function stats() {
+  var srcs=new Set(allRecords.map(function(r){return r.source_report}).filter(Boolean));
+  var st=new Set(allRecords.filter(function(r){return r.country==="US"&&r.state&&r.state!=="US"&&r.state.length===2}).map(function(r){return r.state}));
+  document.getElementById("stat-facts").textContent=allRecords.length.toLocaleString();
+  document.getElementById("stat-reports").textContent=srcs.size;
+  document.getElementById("stat-us-states").textContent=st.size;
+  document.getElementById("source-count").textContent=srcs.size;
 }
 
-function loadMore() {
-  currentPage++;
-  renderResults();
+function srcName(p) {
+  if(!p) return "Unknown";
+  var f=p.replace(/^.*\//,"");
+  if(f==="HI Report Jan 20.pdf") return "HI Cannabis Market Report";
+  return f.replace(/\.pdf$/i,"");
 }
 
-/* === URL HASH STATE === */
-function readHashState() {
-  const hash = window.location.hash.slice(1);
-  if (!hash) return;
-
-  const params = new URLSearchParams(hash);
-  if (params.has("q")) document.getElementById("search").value = params.get("q");
-  if (params.has("country")) {
-    document.getElementById("filter-country").value = params.get("country");
-    populateStateDropdown();
-  }
-  if (params.has("state")) document.getElementById("filter-state").value = params.get("state");
-  if (params.has("category")) document.getElementById("filter-category").value = params.get("category");
-  if (params.has("type")) document.getElementById("filter-type").value = params.get("type");
-  if (params.has("ys")) document.getElementById("year-start").value = params.get("ys");
-  if (params.has("ye")) document.getElementById("year-end").value = params.get("ye");
-}
-
-function updateHashState() {
-  const q = document.getElementById("search").value.trim();
-  const country = document.getElementById("filter-country").value;
-  const state = document.getElementById("filter-state").value;
-  const cat = document.getElementById("filter-category").value;
-  const type = document.getElementById("filter-type").value;
-  const ys = document.getElementById("year-start").value;
-  const ye = document.getElementById("year-end").value;
-
-  const params = new URLSearchParams();
-  if (q) params.set("q", q);
-  if (country) params.set("country", country);
-  if (state) params.set("state", state);
-  if (cat) params.set("category", cat);
-  if (type) params.set("type", type);
-  if (ys) params.set("ys", ys);
-  if (ye) params.set("ye", ye);
-
-  const hash = params.toString();
-  if (hash) {
-    history.replaceState(null, "", "#" + hash);
-  } else {
-    history.replaceState(null, "", window.location.pathname);
-  }
-}
-
-/* === STATS === */
-function updateStats() {
-  const sources = new Set(allRecords.map(r => r.source_report).filter(Boolean));
-  const countries = new Set(allRecords.map(r => r.country).filter(Boolean));
-
-  // Count actual US states (2-letter codes, excluding "US" which is national-level)
-  const usStates = new Set(
-    allRecords
-      .filter(r => r.country === "US" && r.state && r.state !== "US" && r.state.length === 2)
-      .map(r => r.state)
-  );
-
-  document.getElementById("stat-facts").textContent = allRecords.length.toLocaleString();
-  document.getElementById("stat-reports").textContent = sources.size;
-  document.getElementById("stat-us-states").textContent = usStates.size;
-  document.getElementById("stat-countries").textContent = countries.size;
-  document.getElementById("source-count").textContent = sources.size;
-}
-
-/* === UTILS === */
-function esc(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-const SOURCE_DISPLAY_NAMES = {
-  "HI Report Jan 20.pdf": "Current Medical and Future Adult-Use Cannabis Market in Hawai'i",
-};
-
-function cleanSourceName(path) {
-  if (!path) return "Unknown source";
-  const filename = path.replace(/^.*\//, "");
-  return SOURCE_DISPLAY_NAMES[filename] || filename.replace(/\.pdf$/i, "");
-}
-
-function getLatestYear(r) {
-  if (r.year_end) return r.year_end;
-  if (r.year_start) return r.year_start;
-  // Extract latest year from date_range string
-  if (r.date_range) {
-    const years = r.date_range.match(/\b(19|20)\d{2}\b/g);
-    if (years) return Math.max(...years.map(Number));
-  }
+function latestYear(r) {
+  if(r.year_end) return r.year_end;
+  if(r.year_start) return r.year_start;
+  if(r.date_range){ var m=r.date_range.match(/\b(19|20)\d{2}\b/g); if(m) return Math.max.apply(null,m.map(Number)); }
   return 0;
 }
 
-function debounce(fn, ms) {
-  let timer;
-  return function (...args) {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(this, args), ms);
-  };
-}
-
-/* === CLEAR FILTERS === */
-function clearFilters() {
-  document.getElementById("search").value = "";
-  document.getElementById("filter-country").value = "";
-  document.getElementById("filter-state").value = "";
-  document.getElementById("filter-category").value = "";
-  document.getElementById("filter-type").value = "";
-  document.getElementById("year-start").value = "";
-  document.getElementById("year-end").value = "";
-  populateStateDropdown();
-  applyFilters();
-}
-
-/* === VIEW SWITCHING === */
-function switchView(view) {
-  const searchView = document.getElementById("search-view");
-  const sourcesView = document.getElementById("sources-view");
-  const resultsEl = document.getElementById("results");
-  const loadMoreEl = document.getElementById("load-more-wrap");
-  const btnSearch = document.getElementById("view-search");
-  const btnSources = document.getElementById("view-sources");
-
-  if (view === "sources") {
-    searchView.style.display = "none";
-    resultsEl.style.display = "none";
-    loadMoreEl.style.display = "none";
-    sourcesView.style.display = "block";
-    btnSearch.classList.remove("active");
-    btnSources.classList.add("active");
+function switchView(v) {
+  var res=document.getElementById("results"), sv=document.getElementById("sources-view");
+  var th=document.getElementById("table-head"), pg=document.getElementById("pagination");
+  var bs=document.getElementById("view-search"), bv=document.getElementById("view-sources");
+  if(v==="sources"){
+    res.style.display="none"; th.style.display="none"; pg.style.display="none";
+    sv.style.display="block"; bs.classList.remove("active"); bv.classList.add("active");
     renderSources();
   } else {
-    searchView.style.display = "block";
-    resultsEl.style.display = "block";
-    sourcesView.style.display = "none";
-    btnSearch.classList.add("active");
-    btnSources.classList.remove("active");
-    applyFilters();
+    res.style.display=""; th.style.display=""; pg.style.display="";
+    sv.style.display="none"; bs.classList.add("active"); bv.classList.remove("active");
+    run();
   }
 }
 
 function renderSources() {
-  const container = document.getElementById("sources-list");
-
-  // Group records by source_report
-  const bySource = {};
-  allRecords.forEach(r => {
-    const src = r.source_report || "Unknown";
-    if (!bySource[src]) bySource[src] = [];
-    bySource[src].push(r);
-  });
-
-  // Sort by record count descending
-  const sorted = Object.entries(bySource).sort((a, b) => b[1].length - a[1].length);
-
-  document.getElementById("source-count").textContent = sorted.length;
-
-  container.innerHTML = sorted.map(([source, records]) => {
-    const name = cleanSourceName(source);
-    const count = records.length;
-    const states = [...new Set(records.map(r => r.state).filter(Boolean))];
-    const stateNames = states.map(s => STATE_NAMES[s] || s).join(", ");
-    const categories = [...new Set(records.map(r => r.category).filter(Boolean))];
-    const catChips = categories.map(c =>
-      `<span class="source-cat-chip">${esc(CATEGORY_LABELS[c] || c)}</span>`
-    ).join("");
-    const url = sourceUrls[source];
-    const linkHtml = url
-      ? `<a class="source-link" href="${esc(url)}" target="_blank" rel="noopener">View Original Report &rarr;</a>`
-      : "";
-
-    return `<div class="source-card">
-      <div class="source-card-header">
-        <span class="source-name">${esc(name)}</span>
-        <span class="source-count-badge">${count} facts</span>
-      </div>
-      <div class="source-meta">
-        <span class="source-states">${esc(stateNames)}</span>
-        ${linkHtml}
-      </div>
-      ${catChips ? `<div class="source-categories">${catChips}</div>` : ""}
-    </div>`;
+  var el=document.getElementById("sources-list"), by={};
+  allRecords.forEach(function(r){ var s=r.source_report||"Unknown"; if(!by[s]) by[s]=[]; by[s].push(r); });
+  var sorted=Object.entries(by).sort(function(a,b){return b[1].length-a[1].length;});
+  document.getElementById("source-count").textContent=sorted.length;
+  el.innerHTML=sorted.map(function(e){
+    var name=srcName(e[0]), ct=e[1].length, url=sourceUrls[e[0]];
+    var lnk=url?'<a class="src-link" href="'+h(url)+'" target="_blank" rel="noopener">View &rarr;</a>':'<span class="src-link"></span>';
+    return '<div class="src-row"><span class="src-name">'+h(name)+'</span><span class="src-ct">'+ct+'</span>'+lnk+'</div>';
   }).join("");
 }
 
-/* === MOBILE FILTER TOGGLE === */
-function toggleFilters() {
-  const row = document.getElementById("filter-row");
-  const btn = document.getElementById("filter-toggle");
-  row.classList.toggle("open");
-  btn.classList.toggle("open");
+function clearFilters() {
+  document.getElementById("search").value="";
+  document.getElementById("year-start").value="";
+  document.getElementById("year-end").value="";
+  document.querySelectorAll('.filter-check input').forEach(function(c){c.checked=false;});
+  filters={countries:[],states:[],categories:[],types:[]};
+  page=1; run();
 }
 
-/* === BOOT === */
+function showClear() {
+  var q=document.getElementById("search").value.trim();
+  var ys=document.getElementById("year-start").value;
+  var ye=document.getElementById("year-end").value;
+  var has=q||ys||ye||filters.countries.length||filters.states.length||filters.categories.length||filters.types.length;
+  document.getElementById("clear-filters").classList.toggle("visible",!!has);
+}
+
+function readHash() {
+  var hs=window.location.hash.slice(1); if(!hs) return;
+  var p=new URLSearchParams(hs);
+  if(p.has("q")) document.getElementById("search").value=p.get("q");
+  if(p.has("p")) page=parseInt(p.get("p"))||1;
+  if(p.has("ys")) document.getElementById("year-start").value=p.get("ys");
+  if(p.has("ye")) document.getElementById("year-end").value=p.get("ye");
+  ["country","state","category","type"].forEach(function(g){
+    if(p.has(g)){
+      var vals=p.get(g).split(","), key=g==="country"?"countries":g+"s";
+      filters[key]=vals;
+      vals.forEach(function(v){ var cb=document.querySelector('input[data-group="'+g+'"][value="'+v+'"]'); if(cb) cb.checked=true; });
+    }
+  });
+}
+
+function writeHash() {
+  var p=new URLSearchParams(), q=document.getElementById("search").value.trim();
+  if(q) p.set("q",q);
+  if(page>1) p.set("p",page);
+  if(filters.countries.length) p.set("country",filters.countries.join(","));
+  if(filters.states.length) p.set("state",filters.states.join(","));
+  if(filters.categories.length) p.set("category",filters.categories.join(","));
+  if(filters.types.length) p.set("type",filters.types.join(","));
+  var ys=document.getElementById("year-start").value, ye=document.getElementById("year-end").value;
+  if(ys) p.set("ys",ys); if(ye) p.set("ye",ye);
+  var s=p.toString();
+  if(s) history.replaceState(null,"","#"+s);
+  else history.replaceState(null,"",window.location.pathname);
+}
+
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebar-overlay").classList.toggle("open");
+}
+
+function h(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+function ha(s){ return s.replace(/'/g,"\\'").replace(/"/g,"&quot;"); }
+function debounce(fn,ms){ var t; return function(){ var a=arguments,c=this; clearTimeout(t); t=setTimeout(function(){fn.apply(c,a);},ms); }; }
+
 document.addEventListener("DOMContentLoaded", init);
