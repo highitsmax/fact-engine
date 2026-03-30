@@ -79,6 +79,12 @@ body {
 
 .sidebar-logo { height: 30px; width: auto; opacity: .75; }
 .logo-link:hover .sidebar-logo { opacity: 1; }
+.sidebar-logo--light { display: none; }
+
+@media (prefers-color-scheme: light) {
+  .sidebar-logo--dark { display: none; }
+  .sidebar-logo--light { display: block; }
+}
 
 .sidebar-brand { flex: 1; }
 
