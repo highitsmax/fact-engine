@@ -2,9 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cannabis Factbook | Cannabis Wise Guys</title>
   <meta name="description" content="6,000+ cannabis policy facts pulled from government reports. Search by state, topic, or keyword.">
   <meta property="og:title" content="Cannabis Factbook">
@@ -82,19 +80,25 @@
     </aside>
 
     <main class="main">
-      <header class="topbar">
-        <div class="topbar-brand">
-          <button class="hamburger" id="mobile-menu" onclick="toggleSidebar()">
-            <span></span><span></span><span></span>
-          </button>
-          <img src="assets/cwg-logo-white.png" alt="Cannabis Wise Guys" class="topbar-logo topbar-logo--dark">
-          <img src="assets/cwg-logo-dark.png" alt="Cannabis Wise Guys" class="topbar-logo topbar-logo--light">
-          <span class="topbar-title">Cannabis Factbook</span>
+      <div class="mobile-header" id="mobile-header">
+        <button class="hamburger" id="mobile-menu" onclick="toggleSidebar()">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="mobile-header-brand">
+          <img src="assets/cwg-logo-white.png" alt="Cannabis Wise Guys" class="mh-logo mh-logo--dark">
+          <img src="assets/cwg-logo-dark.png" alt="Cannabis Wise Guys" class="mh-logo mh-logo--light">
+          <div class="mh-name">Cannabis Factbook</div>
         </div>
-        <div class="topbar-tabs">
+        <div class="mobile-header-tabs">
           <button class="ttab active" id="m-view-search" onclick="switchView('search')">Data</button>
           <button class="ttab" id="m-view-sources" onclick="switchView('sources')">Sources</button>
+          <span id="result-count-m" class="topbar-count"></span>
         </div>
+      </div>
+      <header class="topbar">
+        <img src="assets/cwg-logo-white.png" alt="CWG" class="topbar-logo topbar-logo--dark">
+        <img src="assets/cwg-logo-dark.png" alt="CWG" class="topbar-logo topbar-logo--light">
+        <span class="topbar-title">Cannabis Factbook</span>
         <span id="result-count" class="topbar-count"></span>
       </header>
 

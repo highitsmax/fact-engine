@@ -183,7 +183,9 @@ function render() {
   var tp=Math.ceil(tot/PER_PAGE)||1;
   if(page>tp) page=tp;
   var s=(page-1)*PER_PAGE, e=Math.min(s+PER_PAGE,tot);
-  ct.textContent=tot===0?"No results":(s+1)+"\u2013"+e+" of "+tot.toLocaleString();
+  var txt=tot===0?"No results":(s+1)+"\u2013"+e+" of "+tot.toLocaleString();
+  ct.textContent=txt;
+  var ctm=document.getElementById("result-count-m"); if(ctm) ctm.textContent=txt;
   if(!tot){ el.innerHTML='<div class="state-msg">No matching records.</div>'; return; }
   el.innerHTML=filteredRecords.slice(s,e).map(renderRow).join("");
 }
