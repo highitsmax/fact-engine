@@ -220,9 +220,12 @@ function renderRow(r) {
   det+='<a class="act" href="'+ANALYSIS_URL+'" target="_blank" rel="noopener">Request Analysis</a>';
   det+='</div></div>';
 
+  var stAbbr = r.state || "";
+
   return '<div class="row" id="'+rid+'">'+
     '<div class="row-summary" onclick="togRow(\''+rid+'\')">'+
     '<span class="c c-yr">'+h(yr)+'</span>'+
+    '<span class="c c-st">'+h(stAbbr)+'</span>'+
     '<span class="c c-src">'+h(src)+'</span>'+
     '<span class="c c-cat">'+h(cat)+'</span>'+
     '<span class="c c-desc">'+hlVal(h(claim))+'</span>'+
@@ -337,14 +340,21 @@ function latestYear(r) {
 function switchView(v) {
   var res=document.getElementById("results"), sv=document.getElementById("sources-view");
   var th=document.getElementById("table-head"), pg=document.getElementById("pagination");
-  var bs=document.getElementById("view-search"), bv=document.getElementById("view-sources");
+
+  var dataEls=[document.getElementById("view-search"),document.getElementById("m-view-search")];
+  var srcEls=[document.getElementById("view-sources"),document.getElementById("m-view-sources")];
+
   if(v==="sources"){
     res.style.display="none"; th.style.display="none"; pg.style.display="none";
-    sv.style.display="block"; bs.classList.remove("active"); bv.classList.add("active");
+    sv.style.display="block";
+    dataEls.forEach(function(e){if(e)e.classList.remove("active");});
+    srcEls.forEach(function(e){if(e)e.classList.add("active");});
     renderSources();
   } else {
     res.style.display=""; th.style.display=""; pg.style.display="";
-    sv.style.display="none"; bs.classList.add("active"); bv.classList.remove("active");
+    sv.style.display="none";
+    dataEls.forEach(function(e){if(e)e.classList.add("active");});
+    srcEls.forEach(function(e){if(e)e.classList.remove("active");});
     run();
   }
 }
@@ -352,13 +362,36 @@ function switchView(v) {
 function renderSources() {
   var el=document.getElementById("sources-list"), by={};
   allRecords.forEach(function(r){ var s=r.source_report||"Unknown"; if(!by[s]) by[s]=[]; by[s].push(r); });
-  var sorted=Object.entries(by).sort(function(a,b){return b[1].length-a[1].length;});
+
+  var sorted=Object.entries(by).sort(function(a,b){
+    var stA=primaryState(a[1]), stB=primaryState(b[1]);
+    var natA=isNational(stA)?0:1, natB=isNational(stB)?0:1;
+    if(natA!==natB) return natA-natB;
+    var nameA=STATE_NAMES[stA]||PROVINCES[stA]||stA||"";
+    var nameB=STATE_NAMES[stB]||PROVINCES[stB]||stB||"";
+    if(nameA!==nameB) return nameA.localeCompare(nameB);
+    return srcName(a[0]).localeCompare(srcName(b[0]));
+  });
+
   document.getElementById("source-count").textContent=sorted.length;
   el.innerHTML=sorted.map(function(e){
     var name=srcName(e[0]), ct=e[1].length, url=sourceUrls[e[0]];
-    var lnk=url?'<a class="src-link" href="'+h(url)+'" target="_blank" rel="noopener">View &rarr;</a>':'<span class="src-link"></span>';
-    return '<div class="src-row"><span class="src-name">'+h(name)+'</span><span class="src-ct">'+ct+'</span>'+lnk+'</div>';
+    var st=primaryState(e[1]);
+    var nameHtml=url?'<a class="src-name" href="'+h(url)+'" target="_blank" rel="noopener">'+h(name)+'</a>':'<span class="src-name">'+h(name)+'</span>';
+    return '<div class="src-row"><span class="src-st">'+h(st)+'</span>'+nameHtml+'<span class="src-ct">'+ct+'</span></div>';
   }).join("");
+}
+
+function primaryState(records) {
+  var counts={};
+  records.forEach(function(r){ if(r.state) counts[r.state]=(counts[r.state]||0)+1; });
+  var best="", max=0;
+  Object.entries(counts).forEach(function(e){ if(e[1]>max){max=e[1];best=e[0];} });
+  return best;
+}
+
+function isNational(st) {
+  return st==="US"||st==="Canada";
 }
 
 function clearFilters() {

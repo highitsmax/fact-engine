@@ -85,17 +85,22 @@
           <span></span><span></span><span></span>
         </button>
         <span class="topbar-title">Cannabis Factbook</span>
+        <div class="topbar-tabs">
+          <button class="ttab active" id="m-view-search" onclick="switchView('search')">Data</button>
+          <button class="ttab" id="m-view-sources" onclick="switchView('sources')">Sources</button>
+        </div>
         <span id="result-count" class="topbar-count"></span>
       </header>
 
       <div class="content" id="content">
         <div class="col-head" id="table-head">
-          <span class="ch ch-date">Year</span>
-          <span class="ch ch-source">Source</span>
-          <span class="ch ch-cat">Topic</span>
-          <span class="ch ch-claim">Description</span>
-          <span class="ch ch-val">Value</span>
-          <span class="ch ch-expand"></span>
+          <span class="ch">Year</span>
+          <span class="ch">State</span>
+          <span class="ch">Source</span>
+          <span class="ch">Topic</span>
+          <span class="ch">Description</span>
+          <span class="ch">Value</span>
+          <span class="ch"></span>
         </div>
 
         <section id="results" class="results">
