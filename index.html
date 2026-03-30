@@ -81,10 +81,14 @@
 
     <main class="main">
       <header class="topbar">
-        <button class="hamburger" id="mobile-menu" onclick="toggleSidebar()">
-          <span></span><span></span><span></span>
-        </button>
-        <span class="topbar-title">Cannabis Factbook</span>
+        <div class="topbar-brand">
+          <button class="hamburger" id="mobile-menu" onclick="toggleSidebar()">
+            <span></span><span></span><span></span>
+          </button>
+          <img src="assets/cwg-logo-white.png" alt="Cannabis Wise Guys" class="topbar-logo topbar-logo--dark">
+          <img src="assets/cwg-logo-dark.png" alt="Cannabis Wise Guys" class="topbar-logo topbar-logo--light">
+          <span class="topbar-title">Cannabis Factbook</span>
+        </div>
         <div class="topbar-tabs">
           <button class="ttab active" id="m-view-search" onclick="switchView('search')">Data</button>
           <button class="ttab" id="m-view-sources" onclick="switchView('sources')">Sources</button>
