@@ -444,7 +444,7 @@ details[open] > .filter-label::before {
 }
 
 /* mobile header styles (used at 768px) */
-.mh-logo { height: 28px; width: auto; opacity: .85; }
+.mh-logo { height: 50px; width: auto; opacity: .85; }
 .mh-logo--light { display: none; }
 @media (prefers-color-scheme: light) {
   .mh-logo--dark { display: none; }
