@@ -722,7 +722,7 @@ a.src-name:hover { color: var(--green); }
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 14px 24px 20px;
+  padding: 14px 24px calc(20px + env(safe-area-inset-bottom, 0px));
 }
 
 .pg {
@@ -789,7 +789,7 @@ a.src-name:hover { color: var(--green); }
     flex-wrap: wrap;
     height: auto;
     padding: 0;
-    padding-top: env(safe-area-inset-top, 0);
+    padding-top: env(safe-area-inset-top, 0px);
     gap: 0;
   }
 
@@ -823,7 +823,11 @@ a.src-name:hover { color: var(--green); }
   .topbar-count {
     position: absolute;
     right: 14px;
-    top: calc(env(safe-area-inset-top, 0) + 12px);
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+  }
+
+  .sidebar {
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   .col-head { display: none; }
