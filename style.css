@@ -75,6 +75,21 @@ body {
   align-items: flex-start;
   gap: 10px;
   border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-head::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('assets/hero-plant.jpg') center right / cover no-repeat;
+  opacity: .06;
+  pointer-events: none;
+}
+
+@media (prefers-color-scheme: light) {
+  .sidebar-head::before { opacity: .15; }
 }
 
 .sidebar-logo { height: 30px; width: auto; opacity: .75; }
@@ -366,6 +381,21 @@ details[open] > .filter-label::before {
 /* mobile header — hidden on desktop */
 .mobile-header {
   display: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('assets/hero-plant.jpg') center right / cover no-repeat;
+  opacity: .12;
+  pointer-events: none;
+}
+
+@media (prefers-color-scheme: light) {
+  .mobile-header::before { opacity: .25; }
 }
 
 .topbar {
