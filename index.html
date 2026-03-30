@@ -147,5 +147,12 @@
     </main>
   </div>
   <div class="overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <div class="modal-overlay" id="record-modal" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-actions" id="modal-actions"></div>
+    </div>
+  </div>
 </body>
 </html>

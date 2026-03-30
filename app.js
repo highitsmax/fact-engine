@@ -547,7 +547,7 @@ function renderStatePage(code) {
 function renderCompactRow(r) {
   var val=fmtVal(r.value,r.unit,r.data_type);
   return '<div class="row" style="border-bottom:1px solid var(--border);">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;gap:12px;cursor:default;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;gap:12px;cursor:pointer;" onclick="openRecord(\''+ha(r.id||"")+'\')">'
     +'<span class="c-desc" style="white-space:normal;flex:1;font-size:12px;">'+hlVal(h(r.claim||""))+'</span>'
     +(val?'<span class="c-val" style="flex-shrink:0;font-size:12px;">'+val+'</span>':'')
     +'</div></div>';
@@ -696,6 +696,45 @@ function toggleSidebar() {
 
 function h(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
 function ha(s){ return s.replace(/'/g,"\\'").replace(/"/g,"&quot;"); }
+function openRecord(id) {
+  var r=allRecords.find(function(x){return x.id===id;});
+  if(!r) return;
+  var body=document.getElementById("modal-body");
+  var actions=document.getElementById("modal-actions");
+  var sn=STATE_NAMES[r.state]||PROVINCES[r.state]||r.state||"";
+  var src=srcName(r.source_report);
+  var val=fmtVal(r.value,r.unit,r.data_type);
+  var pg=r.page?"p."+r.page:"";
+
+  var out='<div class="modal-id">'+h(r.id||"")+'</div>';
+  out+='<div class="modal-claim">'+hlVal(h(r.claim||""))+'</div>';
+  if(val) out+='<div class="modal-val">'+val+'</div>';
+  out+='<div class="modal-meta">';
+  if(sn) out+='<b>'+h(sn)+'</b>';
+  if(r.country==="Canada") out+=' (Canada)';
+  if(r.date_range) out+=' &middot; '+h(r.date_range);
+  out+='<br>Source: '+h(src);
+  if(pg) out+=', '+pg;
+  if(r.source_report) out+=' <a href="#" onclick="openSrc(event,\''+ha(r.source_report)+'\','+(r.page||0)+')">[View]</a>';
+  if(r.notes) out+='<br>Notes: '+h(r.notes);
+  out+='</div>';
+  if(r.context) out+='<div class="modal-ctx">&ldquo;'+h(r.context)+'&rdquo;</div>';
+  body.innerHTML=out;
+
+  actions.innerHTML='<button class="act" onclick="cite(this,\''+ha(r.id||"")+'\')">Copy Citation</button>'
+    +'<a class="act act--dim" href="'+ERROR_FORM+encodeURIComponent(r.id||"")+'" target="_blank" rel="noopener">Report Error</a>'
+    +'<a class="act" href="'+ANALYSIS_URL+'" target="_blank" rel="noopener">Request Analysis</a>';
+
+  document.getElementById("record-modal").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+
+function closeModal(e) {
+  if(e && e.target && !e.target.classList.contains("modal-overlay")) return;
+  document.getElementById("record-modal").classList.remove("open");
+  document.body.style.overflow="";
+}
+
 function debounce(fn,ms){ var t; return function(){ var a=arguments,c=this; clearTimeout(t); t=setTimeout(function(){fn.apply(c,a);},ms); }; }
 
 document.addEventListener("DOMContentLoaded", init);
