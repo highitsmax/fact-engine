@@ -199,6 +199,7 @@ function run() {
   paginate();
   writeHash();
   showClear();
+  document.getElementById("pagination").style.display="";
 }
 
 function render() {
@@ -266,8 +267,10 @@ function togCtx(id,t){ var e=document.getElementById(id); if(e){ e.classList.tog
 
 function paginate() {
   var el=document.getElementById("pagination");
+  if(!el) return;
+  el.style.display="flex";
   var tot=filteredRecords.length, tp=Math.ceil(tot/PER_PAGE)||1;
-  if(tp<=1){ el.innerHTML=""; return; }
+  if(tp<=1){ el.innerHTML=""; el.style.display="none"; return; }
 
   var out='<button class="pg" onclick="go('+(page-1)+')"'+(page<=1?' disabled':'')+'>&#8249;</button>';
   var range=pgRange(page,tp), prev=0;

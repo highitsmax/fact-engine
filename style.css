@@ -813,7 +813,7 @@ a.src-name:hover { color: var(--green); }
 /* footer */
 .site-footer {
   border-top: 1px solid var(--border);
-  padding: 20px 32px;
+  padding: 20px 32px 40px;
   text-align: center;
   flex-shrink: 0;
 }
