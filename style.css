@@ -778,14 +778,16 @@ a.src-name:hover { color: var(--green); }
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 14px 24px 20px;
+  padding: 16px 24px;
+  background: var(--bg-1);
+  border-top: 1px solid var(--border);
 }
 
 .pg {
   font-family: var(--mono);
-  font-size: 11px;
-  min-width: 30px;
-  height: 26px;
+  font-size: 12px;
+  min-width: 34px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
