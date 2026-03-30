@@ -195,11 +195,10 @@ function run() {
     return true;
   });
 
-  render();
-  paginate();
+  try { render(); } catch(e) { console.error("render error:", e); }
+  try { paginate(); } catch(e) { console.error("paginate error:", e); }
   writeHash();
   showClear();
-  document.getElementById("pagination").style.display="";
 }
 
 function render() {
