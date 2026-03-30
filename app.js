@@ -89,13 +89,30 @@ async function init() {
 
   buildFilters();
   stats();
-  readHash();
-  run();
+
+  // check if hash points to a state view
+  var initHash=new URLSearchParams(window.location.hash.slice(1));
+  if(initHash.get("view")==="states"){
+    switchView("states");
+  } else if(initHash.get("view")==="state" && initHash.get("s")){
+    switchView("state",initHash.get("s"));
+  } else if(initHash.get("view")==="sources"){
+    switchView("sources");
+  } else {
+    readHash();
+    run();
+  }
 
   document.getElementById("search").addEventListener("input", debounce(function(){ page=1; run(); }, 250));
   document.getElementById("year-start").addEventListener("change", function(){ page=1; run(); });
   document.getElementById("year-end").addEventListener("change", function(){ page=1; run(); });
-  window.addEventListener("hashchange", function(){ readHash(); run(); });
+  window.addEventListener("hashchange", function(){
+    var hp=new URLSearchParams(window.location.hash.slice(1));
+    if(hp.get("view")==="states") switchView("states");
+    else if(hp.get("view")==="state"&&hp.get("s")) switchView("state",hp.get("s"));
+    else if(hp.get("view")==="sources") switchView("sources");
+    else { readHash(); run(); }
+  });
 }
 
 function buildFilters() {
@@ -366,26 +383,226 @@ function latestYear(r) {
   return 0;
 }
 
-function switchView(v) {
+function switchView(v,stateCode) {
   var res=document.getElementById("results"), sv=document.getElementById("sources-view");
+  var stv=document.getElementById("states-view");
   var th=document.getElementById("table-head"), pg=document.getElementById("pagination");
 
-  var dataEls=[document.getElementById("view-search"),document.getElementById("m-view-search")];
-  var srcEls=[document.getElementById("view-sources"),document.getElementById("m-view-sources")];
+  var tabs={
+    search:[document.getElementById("view-search"),document.getElementById("m-view-search")],
+    sources:[document.getElementById("view-sources"),document.getElementById("m-view-sources")],
+    states:[document.getElementById("view-states"),document.getElementById("m-view-states")]
+  };
+
+  // hide all
+  res.style.display="none"; th.style.display="none"; pg.style.display="none";
+  sv.style.display="none"; stv.style.display="none";
+  Object.values(tabs).forEach(function(arr){arr.forEach(function(e){if(e)e.classList.remove("active");});});
 
   if(v==="sources"){
-    res.style.display="none"; th.style.display="none"; pg.style.display="none";
     sv.style.display="block";
-    dataEls.forEach(function(e){if(e)e.classList.remove("active");});
-    srcEls.forEach(function(e){if(e)e.classList.add("active");});
+    tabs.sources.forEach(function(e){if(e)e.classList.add("active");});
     renderSources();
+  } else if(v==="states"){
+    stv.style.display="block";
+    tabs.states.forEach(function(e){if(e)e.classList.add("active");});
+    renderStatesIndex();
+  } else if(v==="state" && stateCode){
+    stv.style.display="block";
+    tabs.states.forEach(function(e){if(e)e.classList.add("active");});
+    renderStatePage(stateCode);
   } else {
-    res.style.display=""; th.style.display=""; pg.style.display="";
-    sv.style.display="none";
-    dataEls.forEach(function(e){if(e)e.classList.add("active");});
-    srcEls.forEach(function(e){if(e)e.classList.remove("active");});
+    res.style.display=""; th.style.display="";
+    tabs.search.forEach(function(e){if(e)e.classList.add("active");});
     run();
   }
+  document.getElementById("content").scrollTo({top:0});
+}
+
+function openState(code) {
+  switchView("state",code);
+  writeHash();
+}
+
+function renderStatesIndex() {
+  var el=document.getElementById("states-content");
+  var byState={};
+  allRecords.forEach(function(r){
+    if(!r.state) return;
+    if(!byState[r.state]) byState[r.state]={code:r.state,name:STATE_NAMES[r.state]||PROVINCES[r.state]||r.state,country:r.country||"",count:0,cats:{}};
+    byState[r.state].count++;
+    var cat=CATEGORY_NORMALIZE[r.category]||r.category||"Other";
+    byState[r.state].cats[cat]=(byState[r.state].cats[cat]||0)+1;
+  });
+
+  var sorted=Object.values(byState).sort(function(a,b){ return a.name.localeCompare(b.name); });
+
+  el.innerHTML='<div class="states-grid">'+sorted.map(function(s){
+    var topCats=Object.entries(s.cats).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+    var tags=topCats.map(function(c){return '<span class="state-card-tag">'+h(c[0])+'</span>';}).join("");
+    return '<div class="state-card" onclick="openState(\''+ha(s.code)+'\')">'
+      +'<div class="state-card-name">'+h(s.name)+'</div>'
+      +'<div class="state-card-ct">'+s.count+' facts</div>'
+      +'<div class="state-card-tags">'+tags+'</div></div>';
+  }).join("")+'</div>';
+
+  // update hash
+  history.replaceState(null,"","#view=states");
+}
+
+function renderStatePage(code) {
+  var el=document.getElementById("states-content");
+  var name=STATE_NAMES[code]||PROVINCES[code]||code;
+  var records=allRecords.filter(function(r){return r.state===code;});
+  var country=records.length?records[0].country||"":"";
+
+  if(!records.length){
+    el.innerHTML='<div class="state-msg">No data for '+h(name)+'.</div>';
+    return;
+  }
+
+  // sources
+  var srcSet={};
+  records.forEach(function(r){ if(r.source_report){ if(!srcSet[r.source_report]) srcSet[r.source_report]=0; srcSet[r.source_report]++; }});
+  var srcCount=Object.keys(srcSet).length;
+
+  // dollar / pct counts
+  var dollars=0, pcts=0;
+  records.forEach(function(r){
+    var vt=classifyUnit(r);
+    if(vt==="Dollar Values") dollars++;
+    if(vt==="Percentages") pcts++;
+  });
+
+  // summary
+  var summary=genSummary(code,name,records,srcCount,dollars,pcts);
+
+  // latest report
+  var latestReport=getLatestReport(records,srcSet);
+
+  // categories
+  var byCat={};
+  records.forEach(function(r){
+    var cat=CATEGORY_NORMALIZE[r.category]||r.category||"Other";
+    if(!byCat[cat]) byCat[cat]=[];
+    byCat[cat].push(r);
+  });
+  var catSorted=Object.entries(byCat).sort(function(a,b){return b[1].length-a[1].length;});
+
+  // build html
+  var out='';
+  out+='<button class="sp-back" onclick="switchView(\'states\')">&larr; All States</button>';
+  out+='<div class="sp-hero"><div class="sp-name">'+h(name);
+  if(country) out+='<span class="sp-country">'+h(country)+'</span>';
+  out+='</div>';
+  out+='<div class="sp-summary">'+summary+'</div>';
+  out+='<div class="sp-stats">';
+  out+='<span><strong>'+records.length+'</strong> facts</span>';
+  out+='<span><strong>'+srcCount+'</strong> reports</span>';
+  if(dollars) out+='<span><strong>'+dollars+'</strong> dollar values</span>';
+  if(pcts) out+='<span><strong>'+pcts+'</strong> percentages</span>';
+  out+='</div></div>';
+
+  if(latestReport){
+    out+='<div class="sp-report">';
+    out+='<div class="sp-report-label">Featured Report</div>';
+    var rUrl=sourceUrls[latestReport.key];
+    if(rUrl) out+='<div class="sp-report-name"><a href="'+h(rUrl)+'" target="_blank" rel="noopener">'+h(latestReport.name)+'</a></div>';
+    else out+='<div class="sp-report-name">'+h(latestReport.name)+'</div>';
+    out+='<div class="sp-report-meta"><strong>'+latestReport.count+'</strong> facts extracted</div>';
+    out+='</div>';
+  }
+
+  // category sections
+  catSorted.forEach(function(entry,i){
+    var cat=entry[0], recs=entry[1];
+    var secId="sp_sec_"+i;
+    var isOpen=i<2?" open":"";
+    out+='<div class="sp-section'+isOpen+'" id="'+secId+'">';
+    out+='<div class="sp-section-head" onclick="toggleSpSection(\''+secId+'\')">';
+    out+='<span class="sp-section-title">'+h(cat)+'</span>';
+    out+='<span><span class="sp-section-ct">'+recs.length+'</span><span class="sp-arrow"> &#8250;</span></span>';
+    out+='</div>';
+    out+='<div class="sp-section-body">';
+    var show=Math.min(5,recs.length);
+    for(var j=0;j<show;j++) out+=renderCompactRow(recs[j]);
+    if(recs.length>5) out+='<button class="sp-showmore" onclick="expandSpSection(\''+secId+'\',\''+ha(code)+'\',\''+ha(cat)+'\')">Show all '+recs.length+' records</button>';
+    out+='</div></div>';
+  });
+
+  // sources for this state
+  var srcSorted=Object.entries(srcSet).sort(function(a,b){return b[1]-a[1];});
+  out+='<div class="sp-sources"><div class="sp-sources-title">Sources for '+h(name)+'</div>';
+  srcSorted.forEach(function(e){
+    var sName=srcName(e[0]), ct=e[1], url=sourceUrls[e[0]];
+    if(url) out+='<div class="src-row" style="grid-template-columns:1fr 70px;padding-left:0;padding-right:0;"><a class="src-name" href="'+h(url)+'" target="_blank" rel="noopener">'+h(sName)+'</a><span class="src-ct">'+ct+'</span></div>';
+    else out+='<div class="src-row" style="grid-template-columns:1fr 70px;padding-left:0;padding-right:0;"><span class="src-name">'+h(sName)+'</span><span class="src-ct">'+ct+'</span></div>';
+  });
+  out+='</div>';
+
+  el.innerHTML=out;
+  history.replaceState(null,"","#view=state&s="+encodeURIComponent(code));
+}
+
+function renderCompactRow(r) {
+  var val=fmtVal(r.value,r.unit,r.data_type);
+  return '<div class="row" style="border-bottom:1px solid var(--border);">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;gap:12px;cursor:default;">'
+    +'<span class="c-desc" style="white-space:normal;flex:1;font-size:12px;">'+hlVal(h(r.claim||""))+'</span>'
+    +(val?'<span class="c-val" style="flex-shrink:0;font-size:12px;">'+val+'</span>':'')
+    +'</div></div>';
+}
+
+function toggleSpSection(id) {
+  var el=document.getElementById(id);
+  if(el) el.classList.toggle("open");
+}
+
+function expandSpSection(secId,stateCode,cat) {
+  var el=document.getElementById(secId);
+  if(!el) return;
+  var body=el.querySelector(".sp-section-body");
+  var records=allRecords.filter(function(r){
+    return r.state===stateCode && (CATEGORY_NORMALIZE[r.category]||r.category||"Other")===cat;
+  });
+  body.innerHTML=records.map(renderCompactRow).join("");
+}
+
+function genSummary(code,name,records,srcCount,dollars,pcts) {
+  var catCounts={};
+  records.forEach(function(r){
+    var cat=CATEGORY_NORMALIZE[r.category]||r.category||"Other";
+    catCounts[cat]=(catCounts[cat]||0)+1;
+  });
+  var topCats=Object.entries(catCounts).sort(function(a,b){return b[1]-a[1];}).slice(0,3).map(function(e){return e[0].toLowerCase();});
+
+  var s=h(name)+" has <strong>"+records.length+"</strong> facts across <strong>"+srcCount+"</strong> government report"+(srcCount===1?"":"s")+".";
+  if(topCats.length) s+=" Key areas include "+topCats.join(", ")+".";
+
+  // find biggest dollar value
+  var maxDollar=0, maxClaim="";
+  records.forEach(function(r){
+    var u=r.unit||"";
+    if((u==="USD"||u==="USD_millions"||u==="million USD"||u==="billion USD"||u==="dollars")&&r.value){
+      var n=Number(r.value);
+      if(n>maxDollar){maxDollar=n;maxClaim=r.claim||"";}
+    }
+  });
+  if(maxDollar>=1e6) s+=" Largest tracked figure: <strong>$"+abbr(maxDollar)+"</strong>.";
+
+  return s;
+}
+
+function getLatestReport(records,srcSet) {
+  // prefer reports with "annual" or "2025" or "2024" in name, then largest by count
+  var candidates=Object.entries(srcSet).sort(function(a,b){return b[1]-a[1];});
+  var annual=candidates.filter(function(e){
+    var n=e[0].toLowerCase();
+    return n.indexOf("annual")!==-1||n.indexOf("2025")!==-1||n.indexOf("2026")!==-1;
+  });
+  var pick=annual.length?annual[0]:candidates[0];
+  if(!pick) return null;
+  return {key:pick[0], name:srcName(pick[0]), count:pick[1]};
 }
 
 function renderSources() {

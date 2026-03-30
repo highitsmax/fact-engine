@@ -13,9 +13,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js" defer></script>
-  <script src="app.js?v=6" defer></script>
+  <script src="app.js?v=7" defer></script>
 </head>
 <body>
   <div class="layout">
@@ -38,6 +38,7 @@
       <div class="sidebar-nav">
         <button class="nav-tab active" id="view-search" onclick="switchView('search')">Data</button>
         <button class="nav-tab" id="view-sources" onclick="switchView('sources')">Sources <span id="source-count" class="nav-count">--</span></button>
+        <button class="nav-tab" id="view-states" onclick="switchView('states')">States</button>
       </div>
 
       <div class="sidebar-filters" id="sidebar-filters">
@@ -96,6 +97,7 @@
         <div class="mobile-header-tabs">
           <button class="ttab active" id="m-view-search" onclick="switchView('search')">Data</button>
           <button class="ttab" id="m-view-sources" onclick="switchView('sources')">Sources</button>
+          <button class="ttab" id="m-view-states" onclick="switchView('states')">States</button>
           <span id="result-count-m" class="topbar-count"></span>
         </div>
       </div>
@@ -123,6 +125,10 @@
 
         <section id="sources-view" class="sources-view" style="display:none;">
           <div id="sources-list"></div>
+        </section>
+
+        <section id="states-view" style="display:none;">
+          <div id="states-content"></div>
         </section>
 
         <nav id="pagination" class="pagination"></nav>

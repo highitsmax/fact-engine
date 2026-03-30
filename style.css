@@ -810,6 +810,251 @@ a.src-name:hover { color: var(--green); }
 .pg:disabled { opacity: .25; cursor: default; }
 .pg-dots { font-size: 11px; color: var(--t3); padding: 0 3px; }
 
+/* states index */
+.states-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.state-card {
+  background: var(--bg-1);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background .08s;
+}
+
+.state-card:hover { background: var(--bg-3); }
+
+.state-card-name {
+  font-family: var(--brand);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--t1);
+  margin-bottom: 4px;
+}
+
+.state-card-ct {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--green);
+}
+
+.state-card-tags {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.state-card-tag {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--t3);
+  background: var(--bg-3);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+/* state page */
+.sp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--t3);
+  text-decoration: none;
+  padding: 12px 24px 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--sans);
+}
+
+.sp-back:hover { color: var(--green); }
+
+.sp-hero {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.sp-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('assets/hero-plant.jpg') center right / cover no-repeat;
+  opacity: .05;
+  pointer-events: none;
+}
+
+@media (prefers-color-scheme: light) {
+  .sp-hero::before { opacity: .1; }
+}
+
+.sp-name {
+  font-family: var(--brand);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--t1);
+  letter-spacing: .02em;
+  line-height: 1.2;
+  position: relative;
+}
+
+.sp-country {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--t3);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.sp-summary {
+  font-size: 14px;
+  color: var(--t2);
+  line-height: 1.7;
+  margin: 10px 0 12px;
+  max-width: 640px;
+  position: relative;
+}
+
+.sp-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--t3);
+  position: relative;
+}
+
+.sp-stats strong {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--green);
+}
+
+/* featured report */
+.sp-report {
+  margin: 16px 24px;
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  border-radius: 2px;
+}
+
+.sp-report-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 6px;
+}
+
+.sp-report-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--t1);
+  margin-bottom: 4px;
+}
+
+.sp-report-name a {
+  color: var(--t1);
+  text-decoration: none;
+}
+
+.sp-report-name a:hover { color: var(--green); }
+
+.sp-report-meta {
+  font-size: 12px;
+  color: var(--t3);
+}
+
+.sp-report-meta strong {
+  font-family: var(--mono);
+  color: var(--green);
+}
+
+/* category sections */
+.sp-section {
+  border-bottom: 1px solid var(--border);
+}
+
+.sp-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: background .08s;
+}
+
+.sp-section-head:hover { background: var(--bg-3); }
+
+.sp-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.sp-section-ct {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t3);
+}
+
+.sp-section-body {
+  display: none;
+  padding: 0 24px 12px;
+}
+
+.sp-section.open .sp-section-body { display: block; }
+
+.sp-section-head .sp-arrow {
+  font-size: 12px;
+  color: var(--t3);
+  transition: transform .12s;
+  margin-left: 8px;
+}
+
+.sp-section.open .sp-arrow { transform: rotate(90deg); color: var(--green); }
+
+.sp-showmore {
+  font-size: 11px;
+  color: var(--green);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 0;
+  font-family: var(--sans);
+}
+
+.sp-showmore:hover { text-decoration: underline; }
+
+/* state sources list */
+.sp-sources {
+  padding: 12px 24px 16px;
+}
+
+.sp-sources-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 8px;
+}
+
 /* footer */
 .site-footer {
   border-top: 1px solid var(--border);
