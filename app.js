@@ -55,7 +55,22 @@ var ERROR_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfAr0l1d53il4pEHlu4jA
 var ANALYSIS_URL = "https://cannabiswiseguys.com/contact/";
 
 var allRecords = [], filteredRecords = [], sourceUrls = {}, fuse = null, page = 1;
-var filters = { countries:[], states:[], categories:[], types:[] };
+var filters = { countries:[], states:[], categories:[], types:[], valuetypes:[] };
+
+function classifyUnit(r) {
+  var u = r.unit || "";
+  var v = r.value;
+  if (v === null || v === undefined) return null;
+  if (u === "USD" || u === "USD_millions" || u === "million USD" || u === "billion USD" ||
+      u === "dollars" || u === "million dollars" || u === "CAD" || u === "million_CAD" ||
+      u.indexOf("USD_per_") === 0 || u.indexOf("CAD per") === 0 ||
+      u === "USD_monthly" || u === "USD_monthly_per_consumer" ||
+      u === "dollars_per_entity" || u === "dollars_per_grant" || u === "dollars_per_week" ||
+      u === "dollars (range)" || u.indexOf("dollars") === 0) return "Dollar Values";
+  if (u.indexOf("percent") !== -1 || u === "percentage_points") return "Percentages";
+  if (!isNaN(Number(v)) && Number(v) !== 0) return "Counts & Other";
+  return null;
+}
 
 async function init() {
   try {
@@ -84,7 +99,7 @@ async function init() {
 }
 
 function buildFilters() {
-  var cc={}, sc={}, cat={}, tc={};
+  var cc={}, sc={}, cat={}, tc={}, vc={};
   allRecords.forEach(function(r){
     if(r.country) cc[r.country]=(cc[r.country]||0)+1;
     if(r.state){
@@ -100,6 +115,8 @@ function buildFilters() {
       var tl=TYPE_LABELS[r.data_type]||r.data_type;
       tc[tl]=(tc[tl]||0)+1;
     }
+    var vt=classifyUnit(r);
+    if(vt) vc[vt]=(vc[vt]||0)+1;
   });
 
   renderChecks("filter-countries", cc, "country");
@@ -111,6 +128,9 @@ function buildFilters() {
   var cs=Object.entries(cat).sort(function(a,b){return b[1]-a[1];});
   var co={}; cs.forEach(function(e){co[e[0]]=e[1];});
   renderChecks("filter-categories", co, "category");
+
+  var vs={"Dollar Values":vc["Dollar Values"]||0,"Percentages":vc["Percentages"]||0,"Counts & Other":vc["Counts & Other"]||0};
+  renderChecks("filter-valuetypes", vs, "valuetype");
 
   var ts=Object.entries(tc).sort(function(a,b){return b[1]-a[1];});
   var to={}; ts.forEach(function(e){to[e[0]]=e[1];});
@@ -137,6 +157,7 @@ function onCheck() {
   filters.states=checked("state");
   filters.categories=checked("category");
   filters.types=checked("type");
+  filters.valuetypes=checked("valuetype");
   page=1;
   run();
 }
@@ -167,6 +188,10 @@ function run() {
     }
     if(r.year_end && r.year_end<ys) return false;
     if(r.year_start && r.year_start>ye) return false;
+    if(filters.valuetypes.length){
+      var vt=classifyUnit(r);
+      if(!vt || filters.valuetypes.indexOf(vt)===-1) return false;
+    }
     return true;
   });
 
@@ -401,7 +426,7 @@ function clearFilters() {
   document.getElementById("year-start").value="";
   document.getElementById("year-end").value="";
   document.querySelectorAll('.filter-check input').forEach(function(c){c.checked=false;});
-  filters={countries:[],states:[],categories:[],types:[]};
+  filters={countries:[],states:[],categories:[],types:[],valuetypes:[]};
   page=1; run();
 }
 
@@ -409,7 +434,7 @@ function showClear() {
   var q=document.getElementById("search").value.trim();
   var ys=document.getElementById("year-start").value;
   var ye=document.getElementById("year-end").value;
-  var has=q||ys||ye||filters.countries.length||filters.states.length||filters.categories.length||filters.types.length;
+  var has=q||ys||ye||filters.countries.length||filters.states.length||filters.categories.length||filters.types.length||filters.valuetypes.length;
   document.getElementById("clear-filters").classList.toggle("visible",!!has);
 }
 
@@ -420,9 +445,9 @@ function readHash() {
   if(p.has("p")) page=parseInt(p.get("p"))||1;
   if(p.has("ys")) document.getElementById("year-start").value=p.get("ys");
   if(p.has("ye")) document.getElementById("year-end").value=p.get("ye");
-  ["country","state","category","type"].forEach(function(g){
+  ["country","state","category","type","valuetype"].forEach(function(g){
     if(p.has(g)){
-      var vals=p.get(g).split(","), key=g==="country"?"countries":g+"s";
+      var vals=p.get(g).split(","), key=g==="country"?"countries":(g==="valuetype"?"valuetypes":g+"s");
       filters[key]=vals;
       vals.forEach(function(v){ var cb=document.querySelector('input[data-group="'+g+'"][value="'+v+'"]'); if(cb) cb.checked=true; });
     }
@@ -437,6 +462,7 @@ function writeHash() {
   if(filters.states.length) p.set("state",filters.states.join(","));
   if(filters.categories.length) p.set("category",filters.categories.join(","));
   if(filters.types.length) p.set("type",filters.types.join(","));
+  if(filters.valuetypes.length) p.set("valuetype",filters.valuetypes.join(","));
   var ys=document.getElementById("year-start").value, ye=document.getElementById("year-end").value;
   if(ys) p.set("ys",ys); if(ye) p.set("ye",ye);
   var s=p.toString();
